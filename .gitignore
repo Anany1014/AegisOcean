@@ -27,4 +27,14 @@ dist-ssr
 .antigravity
 context
 design
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.pt
+
 
