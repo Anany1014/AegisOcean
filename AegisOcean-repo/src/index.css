@@ -1,0 +1,247 @@
+/* ============================================================
+   AegisOcean — Design Token CSS Variables
+   Direction: "Gradients WebSite Template" Figma Adapation
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  /* ── Color Tokens (Figma Gradients Template) ── */
+  --abyss: #141414;
+  /* Deep neutral charcoal background */
+  --panel: #1c1c1c;
+  /* Main dark container surface */
+  --panel-raised: #242424;
+  /* Elevated container surface */
+  --hairline: rgba(255, 255, 255, 0.15);
+  /* Thin crisp white border */
+  --foam: #ffffff;
+  /* High contrast text */
+  --foam-dim: #e4e4e4;
+  /* Off-white secondary text */
+  --slick-teal: #B877FF;
+  /* Accent violet */
+  --sonar-amber: #F983E9;
+  /* Accent pink */
+  --signal-red: #ff5a50;
+  /* Alert red */
+
+  /* ── Figma Star Gradient Theme ── */
+  --brand-gradient: linear-gradient(90deg, #C6F1F7 0%, #F983E9 36%, #B877FF 74%, #C2E9CD 100%);
+  --brand-gradient-hover: linear-gradient(90deg, #d2f7fb 0%, #ffa3f3 36%, #ca96ff 74%, #d7fce0 100%);
+
+  /* ── Typography (Upgraded for supreme legibility & attraction) ── */
+  --font-display: 'Outfit', system-ui, sans-serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', monospace;
+
+  /* ── Spacing Scale (4px base) ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ── Shadow / Borders (Brutalist style) ── */
+  --shadow-panel: 4px 4px 0px rgba(255, 255, 255, 0.1);
+  --shadow-drawer: -4px 0 0px rgba(255, 255, 255, 0.15);
+
+  /* ── Radii ── */
+  --radius-card: 0px;
+  /* Brutalist sharp corners */
+  --radius-chip: 9999px;
+  /* Rounded pill shapes */
+}
+
+/* ── Reset & Base ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background-color: var(--abyss);
+  color: var(--foam);
+  font-family: var(--font-body);
+  font-size: 15px;
+  /* Scaled up from 14px */
+  line-height: 1.5;
+  /* Inlined line height scaled from 1.4 */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Typography Helpers ── */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* All raw telemetry numbers: tabular so columns align */
+.data-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  /* Scaled up from 13px */
+  letter-spacing: -0.01em;
+}
+
+/* Eyebrow labels — uppercase mono, teal */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  /* Scaled up from 10px */
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--slick-teal);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--abyss);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--hairline);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--foam-dim);
+}
+
+/* ── Focus visible ── */
+:focus-visible {
+  outline: 1.5px solid var(--slick-teal);
+  outline-offset: 2px;
+  border-radius: var(--radius-chip);
+}
+
+/* ── Mapbox overrides ── */
+.mapboxgl-ctrl-group {
+  background: var(--panel) !important;
+  border: 1px solid var(--hairline) !important;
+  box-shadow: var(--shadow-panel) !important;
+  border-radius: var(--radius-card) !important;
+}
+
+.mapboxgl-ctrl-group button {
+  background: transparent !important;
+}
+
+.mapboxgl-ctrl-group button .mapboxgl-ctrl-icon {
+  filter: invert(0.7) sepia(0.3) saturate(0.5);
+}
+
+.mapboxgl-ctrl-group button:hover {
+  background: var(--panel-raised) !important;
+}
+
+.mapboxgl-ctrl-attrib {
+  background: rgba(10, 21, 32, 0.7) !important;
+  color: var(--foam-dim) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 10px !important;
+}
+
+.mapboxgl-ctrl-attrib a {
+  color: var(--slick-teal) !important;
+}
+
+/* ── Animations ── */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.65);
+    opacity: 0.65;
+  }
+
+  100% {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+/* ── Cyber Radar Dark Map Basemap Grayscale Filter ── */
+.maplibregl-canvas {
+  filter: grayscale(0.95) invert(0.9) brightness(0.65) contrast(1.25) !important;
+}
+
+/* ── Status Indicator Pulse Beads ── */
+.pulse-bead {
+  position: relative;
+}
+
+.pulse-bead::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  opacity: 0;
+  animation: pulse-ring 2.2s cubic-bezier(0.25, 0, 0, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
