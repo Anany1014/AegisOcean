@@ -1,0 +1,1 @@
+src/features/layout/VesselDashboard.tsx(24,21): error TS6133: 'isMockMode' is declared but its value is never read.
