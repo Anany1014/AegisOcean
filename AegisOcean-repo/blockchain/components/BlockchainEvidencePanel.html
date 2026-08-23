@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AegisOcean - Blockchain & IPFS Forensic Panel</title>
+  <style>
+    body {
+      background-color: #020617;
+      color: #f8fafc;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .card {
+      background-color: #0f172a;
+      width: 100%;
+      max-width: 800px;
+      border-radius: 12px;
+      padding: 24px;
+      border: 1px solid #1e293b;
+      box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.7);
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+    }
+    .title { margin: 0; font-size: 18px; font-weight: 600; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .field-item { display: flex; flex-direction: column; gap: 4px; }
+    .label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .val { font-size: 14px; font-weight: 500; color: #e2e8f0; }
+    .val-highlight { font-size: 15px; font-weight: 700; color: #38bdf8; }
+    .val-score { font-size: 14px; font-weight: 600; color: #4ade80; }
+    .val-fine { font-size: 15px; font-weight: 700; color: #facc15; }
+    .badge-success { background-color: rgba(34, 197, 94, 0.15); color: #4ade80; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge-info { background-color: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; display: inline-block; }
+    .badge-danger { background-color: rgba(239, 68, 68, 0.15); color: #f87171; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; display: inline-block; }
+    .crypto-box { background-color: #020617; border-radius: 8px; padding: 14px; border: 1px solid #1e293b; display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+    .hash-row { display: flex; flex-direction: column; gap: 2px; }
+    .link { color: #38bdf8; text-decoration: none; word-break: break-all; font-size: 13px; }
+    .code { background-color: #0f172a; padding: 4px 8px; border-radius: 4px; color: #a7f3d0; font-family: monospace; font-size: 12px; word-break: break-all; }
+    .banner { padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 16px; display: none; }
+    .banner-info { background-color: rgba(56, 189, 248, 0.1); border: 1px solid #0284c7; color: #38bdf8; }
+    .banner-success { background-color: rgba(34, 197, 94, 0.1); border: 1px solid #16a34a; color: #4ade80; }
+    .banner-warning { background-color: rgba(234, 179, 8, 0.1); border: 1px solid #ca8a04; color: #facc15; }
+    .banner-danger { background-color: rgba(239, 68, 68, 0.1); border: 1px solid #dc2626; color: #f87171; }
+    .action-row { display: flex; gap: 12px; justify-content: flex-end; }
+    button { padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s ease; }
+    .btn-secondary { background-color: #1e293b; color: #e2e8f0; border: 1px solid #475569; }
+    .btn-secondary:hover { background-color: #334155; }
+    .btn-primary { background-color: #0284c7; color: #ffffff; border: none; }
+    .btn-primary:hover { background-color: #0369a1; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <!-- Header -->
+  <div class="header-row">
+    <h3 class="title"><span>⛓️</span> AegisOcean Blockchain & IPFS Ledger</h3>
+    <span class="badge-success" id="blockchainStatusBadge">● Anchored On-Chain</span>
+  </div>
+
+  <!-- 10 Display Fields -->
+  <div class="grid">
+    <div class="field-item">
+      <span class="label">Incident ID</span>
+      <span class="val-highlight" id="incidentIdVal">#1</span>
+    </div>
+    <div class="field-item">
+      <span class="label">Suspect MMSI</span>
+      <span class="val" id="mmsiVal">367123456</span>
+    </div>
+    <div class="field-item">
+      <span class="label">Attribution Score</span>
+      <span class="val-score" id="scoreVal">92% Confidence</span>
+    </div>
+    <div class="field-item">
+      <span class="label">Spill Area</span>
+      <span class="val" id="areaVal">4 sq km</span>
+    </div>
+    <div class="field-item">
+      <span class="label">Demonstration Fine</span>
+      <span class="val-fine" id="fineVal">$30,000 USD</span>
+    </div>
+    <div class="field-item">
+      <span class="label">Enforcement Status</span>
+      <span class="badge-info" id="statusBadge">Anchored</span>
+    </div>
+  </div>
+
+  <!-- Technical Hashes & CIDs -->
+  <div class="crypto-box">
+    <div class="hash-row">
+      <span class="label">IPFS CID</span>
+      <a href="https://ipfs.io/ipfs/QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco" target="_blank" class="link" id="cidLink">
+        QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco ↗
+      </a>
+    </div>
+    <div class="hash-row">
+      <span class="label">Evidence Hash (SHA-256)</span>
+      <code class="code" id="evidenceHashVal">0x7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069</code>
+    </div>
+    <div class="hash-row">
+      <span class="label">Blockchain Tx Hash</span>
+      <code class="code" id="txHashVal">0x9f83a42e1b8c7d6e5a4f3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e</code>
+    </div>
+  </div>
+
+  <!-- State Banners -->
+  <div id="verifyBanner" class="banner"></div>
+  <div id="enforceBanner" class="banner"></div>
+
+  <!-- Interactive Action Buttons -->
+  <div class="action-row">
+    <button class="btn-secondary" onclick="verifyEvidence()">🔍 [Verify Evidence]</button>
+    <button class="btn-primary" id="enforceBtn" onclick="enforceFine()">⚖️ [Enforce Fine on Blockchain]</button>
+  </div>
+</div>
+
+<script>
+  function verifyEvidence() {
+    const banner = document.getElementById('verifyBanner');
+    banner.style.display = 'block';
+    banner.className = 'banner banner-info';
+    banner.innerText = 'Retrieving IPFS dossier & calculating SHA-256 evidence hash...';
+
+    setTimeout(() => {
+      banner.className = 'banner banner-success';
+      banner.innerHTML = '✓ <strong>Evidence Verified</strong>: On-chain hash matches IPFS payload byte-for-byte.';
+    }, 900);
+  }
+
+  function enforceFine() {
+    const banner = document.getElementById('enforceBanner');
+    const btn = document.getElementById('enforceBtn');
+    const badge = document.getElementById('statusBadge');
+
+    banner.style.display = 'block';
+    banner.className = 'banner banner-warning';
+    banner.innerText = '⏳ Transaction Pending: Submitting fine enforcement to Polygon Amoy smart contract...';
+    btn.disabled = true;
+
+    setTimeout(() => {
+      const mockTx = '0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+      banner.className = 'banner banner-success';
+      banner.innerHTML = '✓ <strong>Transaction Confirmed!</strong> Port clearance revoked. Tx: <code class="code">' + mockTx.substring(0, 20) + '...</code>';
+      
+      badge.className = 'badge-danger';
+      badge.innerText = 'Enforced';
+      document.getElementById('txHashVal').innerText = mockTx;
+      btn.innerText = '⚖️ [Fine Enforced]';
+    }, 1800);
+  }
+</script>
+
+</body>
+</html>

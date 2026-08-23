@@ -1,0 +1,115 @@
+[
+    {
+        "id": "inc-2026-001",
+        "detectedAt": "2026-08-22T08:00:00Z",
+        "polygon": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        72.50,
+                        18.80
+                    ],
+                    [
+                        72.52,
+                        18.82
+                    ],
+                    [
+                        72.55,
+                        18.81
+                    ],
+                    [
+                        72.54,
+                        18.78
+                    ],
+                    [
+                        72.51,
+                        18.77
+                    ],
+                    [
+                        72.50,
+                        18.80
+                    ]
+                ]
+            ]
+        },
+        "areaKm2": 14.8,
+        "perimeterToAreaRatio": 0.42,
+        "windArtifactConfidence": 0.12,
+        "status": "unreviewed"
+    },
+    {
+        "id": "inc-2026-002",
+        "detectedAt": "2026-08-21T14:30:00Z",
+        "polygon": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        72.10,
+                        18.40
+                    ],
+                    [
+                        72.12,
+                        18.42
+                    ],
+                    [
+                        72.13,
+                        18.41
+                    ],
+                    [
+                        72.11,
+                        18.39
+                    ],
+                    [
+                        72.10,
+                        18.40
+                    ]
+                ]
+            ]
+        },
+        "areaKm2": 3.2,
+        "perimeterToAreaRatio": 0.78,
+        "windArtifactConfidence": 0.82,
+        "status": "unreviewed"
+    },
+    {
+        "id": "inc-2026-003",
+        "detectedAt": "2026-08-22T02:15:00Z",
+        "polygon": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        72.82,
+                        19.10
+                    ],
+                    [
+                        72.85,
+                        19.13
+                    ],
+                    [
+                        72.88,
+                        19.11
+                    ],
+                    [
+                        72.86,
+                        19.08
+                    ],
+                    [
+                        72.83,
+                        19.07
+                    ],
+                    [
+                        72.82,
+                        19.10
+                    ]
+                ]
+            ]
+        },
+        "areaKm2": 22.5,
+        "perimeterToAreaRatio": 0.31,
+        "windArtifactConfidence": 0.05,
+        "status": "confirmed"
+    }
+]
