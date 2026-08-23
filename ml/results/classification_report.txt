@@ -1,0 +1,10 @@
+Optimal threshold (Youden J): 0.5315
+
+              precision    recall  f1-score   support
+
+  No Oil (0)     0.9748    0.9678    0.9713       559
+     Oil (1)     0.9379    0.9510    0.9444       286
+
+    accuracy                         0.9621       845
+   macro avg     0.9564    0.9594    0.9579       845
+weighted avg     0.9623    0.9621    0.9622       845

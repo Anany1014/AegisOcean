@@ -1,0 +1,115 @@
+seed: 42
+device: auto  # 'auto' → mps > cuda > cpu
+
+# ─── Paths ──────────────────────────────────────────────
+paths:
+  sos_data_root: "data/SOS"          # download from Kaggle → place here
+  csiro_data_root: "data/2022-12-15_Blondeau-Patissier_David_57430v1/data"
+  results_dir: "ml/results"
+
+# ─── Stage 1: SOS Segmentation Pretraining ───────────────
+stage1:
+  # Data
+  image_size: 512            # resize all SOS patches to this
+  num_workers: 4
+  batch_size: 16
+  val_split: 0.15            # fraction of SOS data held out for validation
+
+  # Augmentation
+  augment:
+    hflip_prob: 0.5
+    vflip_prob: 0.5
+    rotate_limit: 30
+    elastic_alpha: 120
+    elastic_sigma: 6
+    brightness_limit: 0.2
+    contrast_limit: 0.2
+    gauss_noise_var: 0.001   # SAR speckle simulation
+
+  # Model
+  encoder: "efficientnet-b2"
+  encoder_weights: "imagenet"  # ImageNet init for stage1
+  in_channels: 1               # grayscale SAR
+  decoder_channels: [256, 128, 64, 32, 16]
+
+  # Loss
+  dice_weight: 0.5
+  bce_weight: 0.5
+
+  # Optimiser
+  lr: 2.0e-4
+  weight_decay: 1.0e-4
+
+  # Scheduler
+  scheduler: "cosine"
+  t_max: 30
+
+  # Training
+  epochs: 40
+  early_stop_patience: 8
+  monitor: "val_iou"          # metric to monitor for early stopping
+
+  # Targets
+  target_val_iou: 0.70
+  target_val_dice: 0.75
+
+  # Checkpoint
+  checkpoint_name: "sos_encoder.pt"
+
+# ─── Stage 2: CSIRO Classification Fine-tuning ────────────
+stage2:
+  # Data
+  image_size: 224
+  num_workers: 4
+  batch_size: 32
+  train_split: 0.70
+  val_split: 0.15
+  test_split: 0.15
+
+  # Normalisation (SAR grayscale statistics)
+  mean: [0.449]
+  std: [0.226]
+
+  # Augmentation
+  augment:
+    hflip_prob: 0.5
+    vflip_prob: 0.5
+    rotate_limit: 15
+    gauss_noise_var: 0.0001
+
+  # Model
+  encoder: "efficientnet-b2"
+  in_channels: 1
+  hidden_dim: 256
+  dropout1: 0.3
+  dropout2: 0.2
+
+  # Class imbalance  (class 0: 3725, class 1: 1905 → ratio ~1.96)
+  pos_weight: 1.96            # used in loss function
+  use_weighted_sampler: true  # WeightedRandomSampler in train loader
+
+  # Loss (Focal)
+  focal_gamma: 2.0
+
+  # Optimiser — differential LR: head gets lr, encoder gets lr * encoder_lr_scale
+  lr: 1.0e-4
+  encoder_lr_scale: 0.1       # encoder lr = 1e-5 during full fine-tune
+  weight_decay: 1.0e-4
+
+  # Scheduler
+  scheduler: "cosine_warm_restarts"
+  t_0: 10                     # CosineAnnealingWarmRestarts period
+
+  # Training
+  warmup_epochs: 5            # encoder frozen for first N epochs
+  epochs: 50
+  early_stop_patience: 10
+  monitor: "val_f1"
+
+  # Targets
+  target_val_f1: 0.87
+  target_val_auc: 0.92
+
+  # Checkpoint
+  stage1_encoder: "ml/results/sos_encoder.pt"
+  checkpoint_name: "best_classifier.pt"
