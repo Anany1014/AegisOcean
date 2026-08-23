@@ -48,15 +48,17 @@ function getBackendContract() {
  */
 app.get('/api/blockchain/incident/:id', async (req, res) => {
   try {
-    const incidentId = parseInt(req.params.id, 10);
+    const rawId = req.params.id;
     const contract = getBackendContract();
 
     if (contract) {
-      const data = await contract.getIncident(incidentId);
+      const numericId = parseInt(String(rawId).replace(/\D/g, ''), 10) || 1;
+      const data = await contract.getIncident(numericId);
       const statuses = ["Anchored", "Enforced", "Settled", "Released"];
       return res.json({
         success: true,
-        incidentId: Number(data.incidentId),
+        incidentId: rawId,
+        numericIncidentId: Number(data.incidentId),
         suspectMMSI: Number(data.suspectMMSI),
         ipfsCID: data.ipfsCID,
         evidenceHash: data.evidenceHash,
@@ -69,14 +71,14 @@ app.get('/api/blockchain/incident/:id', async (req, res) => {
       });
     } else {
       // Mock mode fallback for local dashboard display
-      const stored = mockIncidentStore.get(incidentId) || {
-        incidentId: incidentId,
+      const stored = mockIncidentStore.get(rawId) || mockIncidentStore.get(String(rawId)) || {
+        incidentId: rawId,
         suspectMMSI: 367123456,
-        spillAreaSqKm: 4,
+        spillAreaSqKm: 14.8,
         attributionScore: 92,
         ipfsCID: "QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco",
         evidenceHash: "0x7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069",
-        fineAmountUSD: 30000,
+        fineAmountUSD: 198000,
         enforcementStatus: "Anchored",
         blockchainStatus: "Anchored On-Chain",
         transactionHash: "0x9f83a42e1b8c7d6e5a4f3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e"
@@ -102,10 +104,12 @@ app.post('/api/blockchain/enforce', async (req, res) => {
     const contract = getBackendContract();
 
     if (contract) {
-      const tx = await contract.enforceFine(incidentId);
+      const numericId = parseInt(String(incidentId).replace(/\D/g, ''), 10) || 1;
+      const tx = await contract.enforceFine(numericId);
       const receipt = await tx.wait();
       return res.json({
         success: true,
+        incidentId: incidentId,
         status: "Confirmed",
         transactionHash: receipt.hash,
         blockNumber: receipt.blockNumber,
@@ -113,12 +117,23 @@ app.post('/api/blockchain/enforce', async (req, res) => {
         clearanceRevoked: true
       });
     } else {
-      const stored = mockIncidentStore.get(incidentId) || { incidentId };
+      const stored = mockIncidentStore.get(incidentId) || mockIncidentStore.get(String(incidentId)) || {
+        incidentId: incidentId,
+        suspectMMSI: 367123456,
+        spillAreaSqKm: 14.8,
+        attributionScore: 92,
+        ipfsCID: "QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco",
+        evidenceHash: "0x7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069",
+        fineAmountUSD: 198000,
+        blockchainStatus: "Anchored On-Chain"
+      };
       stored.enforcementStatus = "Enforced";
       mockIncidentStore.set(incidentId, stored);
+      mockIncidentStore.set(String(incidentId), stored);
 
       return res.json({
         success: true,
+        incidentId: incidentId,
         status: "Confirmed",
         transactionHash: "0x" + Math.random().toString(16).substring(2, 42),
         blockNumber: 15489021,

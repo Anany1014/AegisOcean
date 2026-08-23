@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import Map, { NavigationControl, MapRef } from 'react-map-gl/maplibre';
+import Map, { NavigationControl, Marker, MapRef } from 'react-map-gl/maplibre';
 import DeckGL from '@deck.gl/react';
 import { PathLayer, ScatterplotLayer } from 'deck.gl'; // added
 import { useUiStore } from '@/stores/useUiStore';
@@ -10,6 +10,7 @@ import { createSlickPolygonLayer } from './layers/slickPolygonLayer';
 import { createDriftHeatmapLayer } from './layers/driftHeatmapLayer';
 import { createVesselTrackLayer } from './layers/vesselTrackLayer';
 import { AlertCircle } from 'lucide-react';
+import BlockchainEvidencePanel from '../blockchain/BlockchainEvidencePanel';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 const ESRI_OCEAN_STYLE: any = {
@@ -151,12 +152,33 @@ const VESSEL_DENSITY_POINTS = [
     { coordinates: [72.5, 18.5], radius: 14000, value: 0.9 }
 ];
 
+export const MUMBAI_SHIPS = [
+    {
+        shipName: 'MT Pacific Star',
+        mmsi: '244770842',
+        vesselType: 'Crude Oil Tanker',
+        coordinates: [72.48, 18.82] as [number, number],
+        incidentId: 'inc-2026-001',
+        spillAreaKm2: 14.8,
+        totalFineUSD: 198000,
+    },
+    {
+        shipName: 'MV Ocean Chemist',
+        mmsi: '412987654',
+        vesselType: 'Chemical Carrier',
+        coordinates: [72.68, 18.65] as [number, number],
+        incidentId: 'inc-2026-003',
+        spillAreaKm2: 22.5,
+        totalFineUSD: 275000,
+    }
+];
+
 export const MapConsole: React.FC = () => {
     const mapRef = useRef<MapRef>(null);
 
     const {
         isMockMode, selectedIncidentId, setSelectedIncidentId, inspectedVesselMmsi, setInspectedVesselMmsi,
-        showEez, showPorts, showDensity, layerOpacity, layersYear, currentBasemap
+        showEez, showPorts, showDensity, layerOpacity, layersYear, currentBasemap, fineEnforcedIncidents
     } = useUiStore();
     const { driftPlayhead, isForecastMode } = useDriftPlaybackStore();
 
@@ -164,6 +186,7 @@ export const MapConsole: React.FC = () => {
     const [hoverInfo, setHoverInfo] = useState<any>(null);
     const [mouseCoords, setMouseCoords] = useState<{ lng: number; lat: number } | null>(null);
     const [currentTime, setCurrentTime] = useState<string>('');
+    const [selectedShipIncidentId, setSelectedShipIncidentId] = useState<string | null>(null);
 
     // Real-time ticking system clock hook
     useEffect(() => {
@@ -328,7 +351,65 @@ export const MapConsole: React.FC = () => {
             >
                 <NavigationControl position="top-right" />
                 <DeckGL viewState={viewState} layers={layers} style={{ pointerEvents: 'none' }} />
+
+                {/* 2 Small Ship Dots in the ocean near Mumbai */}
+                {MUMBAI_SHIPS.map((ship) => {
+                    const isEnforced = fineEnforcedIncidents[ship.incidentId]?.txHash;
+                    const isSelected = selectedIncidentId === ship.incidentId;
+                    return (
+                        <Marker
+                            key={ship.mmsi}
+                            longitude={ship.coordinates[0]}
+                            latitude={ship.coordinates[1]}
+                            anchor="center"
+                        >
+                            <div
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedIncidentId(ship.incidentId);
+                                    setInspectedVesselMmsi(ship.mmsi);
+                                    setSelectedShipIncidentId(ship.incidentId);
+                                }}
+                                className="group relative flex items-center justify-center cursor-pointer p-1"
+                                title={`${ship.shipName} (${ship.vesselType}) - Fine: $${(ship.totalFineUSD / 1000).toFixed(0)}k USD`}
+                            >
+                                {/* Subtle small animated radar pulse */}
+                                <span className={`absolute w-4 h-4 rounded-full opacity-70 animate-ping ${
+                                    isEnforced ? 'bg-red-500' : 'bg-cyan-400'
+                                }`} />
+
+                                {/* Small sleek dot (8px) */}
+                                <span className={`relative block w-2.5 h-2.5 rounded-full border shadow-md transition-transform duration-150 group-hover:scale-150 ${
+                                    isEnforced
+                                        ? 'bg-red-500 border-white ring-1 ring-red-400'
+                                        : isSelected
+                                            ? 'bg-cyan-300 border-white ring-2 ring-cyan-400'
+                                            : 'bg-cyan-400 border-slate-900 group-hover:bg-white'
+                                }`} />
+
+                                {/* Mini hover badge */}
+                                <div className="absolute top-4 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center pointer-events-none z-50 whitespace-nowrap">
+                                    <div className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-[#020617]/95 border border-[#1e293b] text-slate-100 shadow-xl flex items-center space-x-1.5">
+                                        <span className="text-[#38bdf8]">🚢 {ship.shipName}</span>
+                                        <span className="text-slate-500">·</span>
+                                        <span className={isEnforced ? 'text-red-400' : 'text-amber-400'}>
+                                            ${(ship.totalFineUSD / 1000).toFixed(0)}k Fine
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </Marker>
+                    );
+                })}
             </Map>
+
+            {/* Previous Authentic Full-Screen Blockchain & IPFS Ledger Interface */}
+            {selectedShipIncidentId && (
+                <BlockchainEvidencePanel
+                    incidentId={selectedShipIncidentId}
+                    onClose={() => setSelectedShipIncidentId(null)}
+                />
+            )}
 
             {/* Custom themed floating coordinate tooltip */}
             {hoverInfo && (
