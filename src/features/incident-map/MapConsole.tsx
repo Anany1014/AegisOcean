@@ -12,25 +12,97 @@ import { createVesselTrackLayer } from './layers/vesselTrackLayer';
 import { AlertCircle } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-const OSM_MAP_STYLE: any = {
+const ESRI_OCEAN_STYLE: any = {
     version: 8,
     sources: {
-        'osm-tiles': {
+        'esri-ocean-base': {
             type: 'raster',
             tiles: [
-                'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+                'https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}'
             ],
             tileSize: 256,
-            attribution: '© OpenStreetMap contributors'
+            attribution: 'Esri, GEBCO, NOAA, National Geographic, Garmin, HERE, Geonames.org, and other contributors'
+        },
+        'esri-ocean-ref': {
+            type: 'raster',
+            tiles: [
+                'https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}'
+            ],
+            tileSize: 256
         }
     },
     layers: [
         {
-            id: 'osm-tiles-layer',
+            id: 'esri-ocean-base-layer',
             type: 'raster',
-            source: 'osm-tiles',
+            source: 'esri-ocean-base',
+            minzoom: 0,
+            maxzoom: 19
+        },
+        {
+            id: 'esri-ocean-ref-layer',
+            type: 'raster',
+            source: 'esri-ocean-ref',
+            minzoom: 0,
+            maxzoom: 19
+        }
+    ]
+};
+
+const ESRI_TOPO_STYLE: any = {
+    version: 8,
+    sources: {
+        'esri-topo': {
+            type: 'raster',
+            tiles: [
+                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'
+            ],
+            tileSize: 256,
+            attribution: 'Esri, HERE, Garmin, Intermap, increment P Corp., GEBCO, USGS, FAO, NPS, NRCAN, GeoBase, IGN, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), (c) OpenStreetMap contributors, and the GIS User Community'
+        }
+    },
+    layers: [
+        {
+            id: 'esri-topo-layer',
+            type: 'raster',
+            source: 'esri-topo',
+            minzoom: 0,
+            maxzoom: 19
+        }
+    ]
+};
+
+const ESRI_DARK_GRAY_STYLE: any = {
+    version: 8,
+    sources: {
+        'esri-dark-gray-base': {
+            type: 'raster',
+            tiles: [
+                'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+            ],
+            tileSize: 256,
+            attribution: 'Esri, HERE, Garmin, © OpenStreetMap contributors, and the GIS user community'
+        },
+        'esri-dark-gray-ref': {
+            type: 'raster',
+            tiles: [
+                'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}'
+            ],
+            tileSize: 256
+        }
+    },
+    layers: [
+        {
+            id: 'esri-dark-gray-base-layer',
+            type: 'raster',
+            source: 'esri-dark-gray-base',
+            minzoom: 0,
+            maxzoom: 19
+        },
+        {
+            id: 'esri-dark-gray-ref-layer',
+            type: 'raster',
+            source: 'esri-dark-gray-ref',
             minzoom: 0,
             maxzoom: 19
         }
@@ -84,7 +156,7 @@ export const MapConsole: React.FC = () => {
 
     const {
         isMockMode, selectedIncidentId, setSelectedIncidentId, inspectedVesselMmsi, setInspectedVesselMmsi,
-        showEez, showPorts, showDensity, layerOpacity, layersYear
+        showEez, showPorts, showDensity, layerOpacity, layersYear, currentBasemap
     } = useUiStore();
     const { driftPlayhead, isForecastMode } = useDriftPlaybackStore();
 
@@ -246,7 +318,13 @@ export const MapConsole: React.FC = () => {
                 onMove={(evt: any) => setViewState(evt.viewState)}
                 onMouseMove={(evt: any) => setMouseCoords(evt.lngLat ? { lng: evt.lngLat.lng, lat: evt.lngLat.lat } : null)}
                 onMouseLeave={() => setMouseCoords(null)}
-                mapStyle={OSM_MAP_STYLE}
+                mapStyle={
+                    currentBasemap === 'esri-ocean'
+                        ? ESRI_OCEAN_STYLE
+                        : currentBasemap === 'esri-topo'
+                            ? ESRI_TOPO_STYLE
+                            : ESRI_DARK_GRAY_STYLE
+                }
             >
                 <NavigationControl position="top-right" />
                 <DeckGL viewState={viewState} layers={layers} style={{ pointerEvents: 'none' }} />

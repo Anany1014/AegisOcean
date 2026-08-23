@@ -15,7 +15,8 @@ export const TriageSidebar: React.FC = () => {
         showDensity, setShowDensity,
         showRasterCharts, setShowRasterCharts,
         layerOpacity, setLayerOpacity,
-        layersYear, setLayersYear
+        layersYear, setLayersYear,
+        currentBasemap, setBasemap
     } = useUiStore();
 
     const [activeTab, setActiveTab] = useState<'detections' | 'layers'>('detections');
@@ -69,8 +70,8 @@ export const TriageSidebar: React.FC = () => {
                 <button
                     onClick={() => setActiveTab('detections')}
                     className={`flex-1 py-3 text-center border-r border-[var(--hairline)] uppercase transition-all ${activeTab === 'detections'
-                            ? 'bg-[var(--panel-raised)] text-[var(--foam)] border-b-2 border-b-[var(--slick-teal)]'
-                            : 'text-[var(--foam-dim)] hover:text-[var(--foam)]'
+                        ? 'bg-[var(--panel-raised)] text-[var(--foam)] border-b-2 border-b-[var(--slick-teal)]'
+                        : 'text-[var(--foam-dim)] hover:text-[var(--foam)]'
                         }`}
                 >
                     Detections ({processedIncidents.length})
@@ -78,8 +79,8 @@ export const TriageSidebar: React.FC = () => {
                 <button
                     onClick={() => setActiveTab('layers')}
                     className={`flex-1 py-3 text-center uppercase transition-all ${activeTab === 'layers'
-                            ? 'bg-[var(--panel-raised)] text-[var(--foam)] border-b-2 border-b-[var(--slick-teal)]'
-                            : 'text-[var(--foam-dim)] hover:text-[var(--foam)]'
+                        ? 'bg-[var(--panel-raised)] text-[var(--foam)] border-b-2 border-b-[var(--slick-teal)]'
+                        : 'text-[var(--foam-dim)] hover:text-[var(--foam)]'
                         }`}
                 >
                     Map Layers
@@ -236,8 +237,8 @@ export const TriageSidebar: React.FC = () => {
                                                     key={year}
                                                     onClick={() => setLayersYear(year)}
                                                     className={`py-1 rounded border text-[9px] text-center transition-all cursor-pointer font-mono ${isSelected
-                                                            ? 'border-[var(--slick-teal)] bg-[rgba(0,242,254,0.08)] text-[var(--slick-teal)] font-bold'
-                                                            : 'border-white/10 bg-white/5 text-white/50 hover:text-white'
+                                                        ? 'border-[var(--slick-teal)] bg-[rgba(0,242,254,0.08)] text-[var(--slick-teal)] font-bold'
+                                                        : 'border-white/10 bg-white/5 text-white/50 hover:text-white'
                                                         }`}
                                                 >
                                                     {year}
@@ -284,6 +285,87 @@ export const TriageSidebar: React.FC = () => {
                             className="w-full h-1 bg-[var(--abyss)] rounded-lg appearance-none cursor-pointer accent-[var(--slick-teal)] border border-[var(--hairline)]"
                         />
                     </Card>
+
+                    {/* Basemap Selection */}
+                    <div className="space-y-2.5">
+                        <span className="text-[10px] font-mono text-[var(--foam-dim)] uppercase tracking-wider">Basemap Type</span>
+                        <div className="space-y-2">
+                            {/* ESRI World Ocean */}
+                            <div
+                                onClick={() => setBasemap('esri-ocean')}
+                                className={`group relative overflow-hidden rounded-[var(--radius-card)] cursor-pointer border transition-all duration-200 ${currentBasemap === 'esri-ocean'
+                                    ? 'border-[var(--slick-teal)] ring-1 ring-[var(--slick-teal)]/30 shadow-[0_0_8px_rgba(0,242,254,0.2)]'
+                                    : 'border-white/10 opacity-70 hover:opacity-100 hover:border-white/20'
+                                    }`}
+                            >
+                                <div className="h-10 w-full relative bg-slate-800">
+                                    <img
+                                        src="https://www.arcgis.com/sharing/rest/content/items/5ae9e13ae0b14c1aaee4e4ab49cc1444/info/thumbnail/thumbnail1568222835848.jpeg"
+                                        alt="Esri World Ocean"
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            (e.target as HTMLElement).style.display = 'none';
+                                        }}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex items-center px-3.5">
+                                        <span className="text-[9px] font-bold text-white tracking-widest uppercase font-mono">
+                                            Esri World Ocean
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ESRI World Geographic Detail */}
+                            <div
+                                onClick={() => setBasemap('esri-topo')}
+                                className={`group relative overflow-hidden rounded-[var(--radius-card)] cursor-pointer border transition-all duration-200 ${currentBasemap === 'esri-topo'
+                                    ? 'border-[var(--slick-teal)] ring-1 ring-[var(--slick-teal)]/30 shadow-[0_0_8px_rgba(0,242,254,0.2)]'
+                                    : 'border-white/10 opacity-70 hover:opacity-100 hover:border-white/20'
+                                    }`}
+                            >
+                                <div className="h-10 w-full relative bg-slate-800">
+                                    <img
+                                        src="https://www.arcgis.com/sharing/rest/content/items/30e5fe3149c34df1ba922e6f5bbf8ae5/info/thumbnail/ago_downloaded.png"
+                                        alt="Esri World Geographic Detail"
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            (e.target as HTMLElement).style.display = 'none';
+                                        }}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex items-center px-3.5">
+                                        <span className="text-[9px] font-bold text-white tracking-widest uppercase font-mono">
+                                            Esri World Geo Detail
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ESRI Dark Gray Canvas */}
+                            <div
+                                onClick={() => setBasemap('esri-dark')}
+                                className={`group relative overflow-hidden rounded-[var(--radius-card)] cursor-pointer border transition-all duration-200 ${currentBasemap === 'esri-dark'
+                                    ? 'border-[var(--slick-teal)] ring-1 ring-[var(--slick-teal)]/30 shadow-[0_0_8px_rgba(0,242,254,0.2)]'
+                                    : 'border-white/10 opacity-70 hover:opacity-100 hover:border-white/20'
+                                    }`}
+                            >
+                                <div className="h-10 w-full relative bg-slate-800">
+                                    <img
+                                        src="https://www.arcgis.com/sharing/rest/content/items/b04ab229ab34491987c6b41295325997/info/thumbnail/ago_downloaded.png"
+                                        alt="Esri Dark Gray Canvas"
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            (e.target as HTMLElement).style.display = 'none';
+                                        }}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex items-center px-3.5">
+                                        <span className="text-[9px] font-bold text-white tracking-widest uppercase font-mono">
+                                            Esri Dark Gray Canvas
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Compact Interactive Legend */}
                     <div className="border-t border-[var(--hairline)] pt-3 bg-transparent">

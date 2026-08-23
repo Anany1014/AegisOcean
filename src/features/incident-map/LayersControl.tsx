@@ -11,7 +11,8 @@ export const LayersControl: React.FC = () => {
         layerOpacity, setLayerOpacity,
         layersYear, setLayersYear,
         showLayersControl, setShowLayersControl,
-        layersTab, setLayersTab
+        layersTab, setLayersTab,
+        currentBasemap, setBasemap
     } = useUiStore();
 
     const [isLegendOpen, setIsLegendOpen] = useState(false);
@@ -166,15 +167,81 @@ export const LayersControl: React.FC = () => {
                 </div>
             ) : (
                 /* Tab Content - Basemap Choice */
-                <div className="space-y-2 p-1 text-[10px] font-mono text-white/60 uppercase">
-                    <div className="p-2 border border-white/15 rounded bg-[#0074d9]/10 text-white font-bold cursor-pointer">
-                        🌐 OpenStreetMap Standard
+                <div className="space-y-3 p-1">
+                    {/* ESRI World Ocean */}
+                    <div
+                        onClick={() => setBasemap('esri-ocean')}
+                        className={`group relative overflow-hidden rounded-xl cursor-pointer border-2 transition-all duration-200 ${currentBasemap === 'esri-ocean'
+                                ? 'border-[#e67e22] ring-2 ring-[#e67e22]/50 shadow-[0_0_12px_rgba(230,126,34,0.6)]'
+                                : 'border-white/10 opacity-70 hover:opacity-100 hover:border-white/30'
+                            }`}
+                    >
+                        <div className="h-16 w-full relative bg-slate-800">
+                            <img
+                                src="https://www.arcgis.com/sharing/rest/content/items/5ae9e13ae0b14c1aaee4e4ab49cc1444/info/thumbnail/thumbnail1568222835848.jpeg"
+                                alt="Esri World Ocean"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none';
+                                }}
+                            />
+                            {/* overlay text */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex items-end p-2 pb-1.5 px-2.5">
+                                <span className="text-[10px] font-bold text-white tracking-wider uppercase font-mono">
+                                    Esri World Ocean
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="p-2 border border-white/5 rounded hover:bg-white/5 cursor-not-allowed opacity-50">
-                        🗺️ CartoDB Dark Matter
+
+                    {/* ESRI World Geographic Detail */}
+                    <div
+                        onClick={() => setBasemap('esri-topo')}
+                        className={`group relative overflow-hidden rounded-xl cursor-pointer border-2 transition-all duration-200 ${currentBasemap === 'esri-topo'
+                                ? 'border-[#e67e22] ring-2 ring-[#e67e22]/50 shadow-[0_0_12px_rgba(230,126,34,0.6)]'
+                                : 'border-white/10 opacity-70 hover:opacity-100 hover:border-white/30'
+                            }`}
+                    >
+                        <div className="h-16 w-full relative bg-slate-800">
+                            <img
+                                src="https://www.arcgis.com/sharing/rest/content/items/30e5fe3149c34df1ba922e6f5bbf8ae5/info/thumbnail/ago_downloaded.png"
+                                alt="Esri World Geographic Detail"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none';
+                                }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex items-end p-2 pb-1.5 px-2.5">
+                                <span className="text-[10px] font-bold text-white tracking-wider uppercase font-mono">
+                                    Esri World Geo Detail
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="p-2 border border-white/5 rounded hover:bg-white/5 cursor-not-allowed opacity-50">
-                        🛰️ Satellite Imagery
+
+                    {/* ESRI Dark Gray Canvas */}
+                    <div
+                        onClick={() => setBasemap('esri-dark')}
+                        className={`group relative overflow-hidden rounded-xl cursor-pointer border-2 transition-all duration-200 ${currentBasemap === 'esri-dark'
+                                ? 'border-[#e67e22] ring-2 ring-[#e67e22]/50 shadow-[0_0_12px_rgba(230,126,34,0.6)]'
+                                : 'border-white/10 opacity-70 hover:opacity-100 hover:border-white/30'
+                            }`}
+                    >
+                        <div className="h-16 w-full relative bg-slate-800">
+                            <img
+                                src="https://www.arcgis.com/sharing/rest/content/items/b04ab229ab34491987c6b41295325997/info/thumbnail/ago_downloaded.png"
+                                alt="Esri Dark Gray Canvas"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none';
+                                }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex items-end p-2 pb-1.5 px-2.5">
+                                <span className="text-[10px] font-bold text-white tracking-wider uppercase font-mono">
+                                    Esri Dark Gray Canvas
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

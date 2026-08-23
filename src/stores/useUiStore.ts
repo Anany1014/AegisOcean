@@ -15,6 +15,7 @@ interface UiState {
     layersYear: number;
     showLayersControl: boolean;
     layersTab: 'layers' | 'basemap';
+    currentBasemap: 'esri-ocean' | 'esri-topo' | 'esri-dark';
     setMockMode: (mode: boolean) => void;
     setSelectedIncidentId: (id: string | null) => void;
     setInspectedVesselMmsi: (mmsi: string | null) => void;
@@ -30,6 +31,7 @@ interface UiState {
     setLayersYear: (year: number) => void;
     setShowLayersControl: (show: boolean) => void;
     setLayersTab: (tab: 'layers' | 'basemap') => void;
+    setBasemap: (basemap: 'esri-ocean' | 'esri-topo' | 'esri-dark') => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -47,6 +49,7 @@ export const useUiStore = create<UiState>((set) => ({
     layersYear: 2025,
     showLayersControl: true,
     layersTab: 'layers',
+    currentBasemap: 'esri-dark',
     setMockMode: (isMockMode) => set({ isMockMode }),
     setSelectedIncidentId: (selectedIncidentId) =>
         set({ selectedIncidentId, inspectedVesselMmsi: null, isDossierOpen: false }),
@@ -72,4 +75,5 @@ export const useUiStore = create<UiState>((set) => ({
     setLayersYear: (layersYear) => set({ layersYear }),
     setShowLayersControl: (showLayersControl) => set({ showLayersControl }),
     setLayersTab: (layersTab) => set({ layersTab }),
+    setBasemap: (currentBasemap) => set({ currentBasemap }),
 }));
