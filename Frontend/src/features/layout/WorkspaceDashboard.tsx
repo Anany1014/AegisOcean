@@ -100,7 +100,7 @@ export const WorkspaceDashboard: React.FC = () => {
 
                     <button
                         onClick={() => navigate('/vessel-dashboard')}
-                        className="px-3 py-1.5 text-[10px] font-mono tracking-widest text-[var(--slick-teal)] border border-[var(--slick-teal)]/20 hover:border-[var(--slick-teal)]/60 hover:bg-[var(--slick-teal)]/10 rounded-[var(--radius-chip)] transition-all select-none cursor-pointer uppercase"
+                        className="px-5 py-2.5 text-xs font-mono font-bold tracking-widest text-[var(--abyss)] bg-[var(--slick-teal)] hover:bg-[var(--slick-teal)]/90 rounded-[var(--radius-card)] transition-all select-none cursor-pointer uppercase shadow-[0_0_15px_rgba(0,242,254,0.35)] animate-pulse"
                     >
                         VESSEL PORTAL
                     </button>

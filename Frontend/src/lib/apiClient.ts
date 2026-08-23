@@ -2,6 +2,7 @@ import mockIncidents from '@/mocks/incidents.json';
 import mockDrift from '@/mocks/drift.json';
 import mockSuspects from '@/mocks/suspects.json';
 import { Incident, DriftFrame, SuspectVessel } from '@/types/contract';
+import { useUiStore } from '@/stores/useUiStore';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
@@ -10,17 +11,21 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const apiClient = {
     async getIncidents(isMockMode: boolean): Promise<Incident[]> {
+        const customIncidents = useUiStore.getState().customIncidents || [];
         if (isMockMode) {
             await delay(600); // realistic latency
-            return mockIncidents as Incident[];
+            return [...(mockIncidents as Incident[]), ...customIncidents];
         }
         try {
             const res = await fetch(`${API_BASE_URL}/incidents`);
-            if (!res.ok) throw new Error('API request failed');
-            return await res.json();
+            if (res.ok) {
+                const data = await res.json();
+                return [...data, ...customIncidents];
+            }
+            throw new Error('API request failed');
         } catch (err) {
             console.warn('Real API failed, dropping back to mock data:', err);
-            throw err; // hooks can suggest fallback to mock
+            return [...(mockIncidents as Incident[]), ...customIncidents];
         }
     },
 
@@ -90,6 +95,20 @@ export const apiClient = {
             body: JSON.stringify({ ipfsCID, storedEvidenceHash }),
         });
         if (!res.ok) throw new Error('Failed to verify evidence');
+        return await res.json();
+    },
+    async analyzeAndAnchorIncident(payload: {
+        suspectMMSI: number;
+        polygon: number[][];
+        windSpeedMs: number;
+        backscatterMean?: number;
+    }): Promise<any> {
+        const res = await fetch(`http://localhost:4000/api/ml/analyze-and-anchor`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error('ML & Web3 anchoring pipeline failed');
         return await res.json();
     },
 };

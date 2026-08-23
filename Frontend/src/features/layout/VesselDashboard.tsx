@@ -21,7 +21,7 @@ const FigmaStar: React.FC<{ className?: string; size?: number }> = ({ className 
 
 export const VesselDashboard: React.FC = () => {
     const navigate = useNavigate();
-    const { fineEnforcedIncidents } = useUiStore();
+    const { fineEnforcedIncidents, logout } = useUiStore();
     const [currentTime, setCurrentTime] = useState<string>('');
     const [payments, setPayments] = useState<Record<string, 'pending' | 'paying' | 'paid'>>({});
 
@@ -109,6 +109,15 @@ export const VesselDashboard: React.FC = () => {
                     >
                         <Map size={12} />
                         <span>COMMAND CENTER</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            logout();
+                            navigate('/login');
+                        }}
+                        className="px-3 py-1.5 text-[10px] font-mono tracking-widest text-[var(--signal-red)] border border-[var(--signal-red)]/20 hover:border-[var(--signal-red)]/60 hover:bg-[var(--signal-red)]/10 rounded-[var(--radius-chip)] transition-all flex items-center space-x-1.5 cursor-pointer uppercase font-bold"
+                    >
+                        <span>LOGOUT</span>
                     </button>
                 </div>
             </header>
