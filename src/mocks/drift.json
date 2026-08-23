@@ -1,0 +1,125 @@
+[
+    {
+        "timestampOffsetHours": -72,
+        "originHeatmap": {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [
+                            72.30,
+                            18.60
+                        ]
+                    },
+                    "properties": {
+                        "weight": 0.1
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [
+                            72.32,
+                            18.61
+                        ]
+                    },
+                    "properties": {
+                        "weight": 0.2
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "timestampOffsetHours": -48,
+        "originHeatmap": {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [
+                            72.36,
+                            18.64
+                        ]
+                    },
+                    "properties": {
+                        "weight": 0.3
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [
+                            72.38,
+                            18.66
+                        ]
+                    },
+                    "properties": {
+                        "weight": 0.5
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "timestampOffsetHours": -24,
+        "originHeatmap": {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [
+                            72.44,
+                            18.72
+                        ]
+                    },
+                    "properties": {
+                        "weight": 0.6
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [
+                            72.46,
+                            18.74
+                        ]
+                    },
+                    "properties": {
+                        "weight": 0.8
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "timestampOffsetHours": 0,
+        "originHeatmap": {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [
+                            72.52,
+                            18.80
+                        ]
+                    },
+                    "properties": {
+                        "weight": 1.0
+                    }
+                }
+            ]
+        }
+    }
+]

@@ -1,0 +1,91 @@
+[
+    {
+        "mmsi": "244770842",
+        "vesselName": "MV Pacific Star",
+        "vesselType": "Crude Oil Tanker",
+        "track": {
+            "type": "LineString",
+            "coordinates": [
+                [
+                    72.25,
+                    18.55
+                ],
+                [
+                    72.32,
+                    18.62
+                ],
+                [
+                    72.40,
+                    18.70
+                ],
+                [
+                    72.53,
+                    18.82
+                ]
+            ]
+        },
+        "minDistanceKm": 0.4,
+        "temporalOverlapHours": -1.5,
+        "vesselRiskWeight": 0.85,
+        "anomalyIndex": 0.92,
+        "suspectScore": 0.94
+    },
+    {
+        "mmsi": null,
+        "vesselName": "Dark Vessel [Unidentified]",
+        "vesselType": "Unknown (Non-transponding)",
+        "track": {
+            "type": "LineString",
+            "coordinates": [
+                [
+                    72.20,
+                    18.50
+                ],
+                [
+                    72.30,
+                    18.58
+                ],
+                [
+                    72.38,
+                    18.65
+                ]
+            ]
+        },
+        "minDistanceKm": 1.2,
+        "temporalOverlapHours": -2.0,
+        "vesselRiskWeight": 0.90,
+        "anomalyIndex": 0.75,
+        "suspectScore": 0.82
+    },
+    {
+        "mmsi": "311000109",
+        "vesselName": "Oceanic Quest",
+        "vesselType": "Container Ship",
+        "track": {
+            "type": "LineString",
+            "coordinates": [
+                [
+                    72.10,
+                    18.30
+                ],
+                [
+                    72.25,
+                    18.45
+                ],
+                [
+                    72.48,
+                    18.65
+                ],
+                [
+                    72.58,
+                    18.78
+                ]
+            ]
+        },
+        "minDistanceKm": 2.8,
+        "temporalOverlapHours": 0.5,
+        "vesselRiskWeight": 0.30,
+        "anomalyIndex": 0.40,
+        "suspectScore": 0.38
+    }
+]
