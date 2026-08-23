@@ -117,11 +117,23 @@ export const DriftScrubber: React.FC = () => {
                 </span>
             </div>
 
+            {/* Dynamic Lagrangian status readout (F9 Hindcast convergence) */}
+            <div className="bg-[var(--abyss)] px-3 py-1.5 border border-[var(--hairline)] rounded-[var(--radius-chip)] text-[9px] font-mono flex items-center justify-between">
+                <span className="text-[var(--foam-dim)]">PARTICLE CLOUD:</span>
+                <span className={isForecastMode ? "text-[var(--sonar-amber)] font-semibold" : "text-[var(--slick-teal)] font-semibold"}>
+                    {driftPlayhead === 0
+                        ? 'EPICENTRAL ACCUMULATION (0h)'
+                        : isForecastMode
+                            ? `FORWARD DISPERSION EXPANSION: +${((driftPlayhead / 48) * 100).toFixed(0)}%`
+                            : `REVERSE LAGRANGIAN CONVERGENCE RATE: ${((Math.abs(driftPlayhead) / 72) * 100).toFixed(0)}% TO ORIGIN`}
+                </span>
+            </div>
+
             {/* Sensor information readout */}
             <div className="flex items-center justify-between text-[9px] font-mono text-[var(--foam-dim)] opacity-75 border-t border-[var(--hairline)] pt-2 pb-0.5">
                 <span className="flex items-center">
                     <Navigation size={10} className="mr-1 text-[var(--slick-teal)]" />
-                    Eulerian Ocean Drift Model
+                    Lagrangian Particle Tracking Engine ({isForecastMode ? 'Forward' : 'Reverse hindcast'})
                 </span>
                 <span>STEP RES: {Math.abs(step)}H</span>
             </div>

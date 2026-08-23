@@ -241,7 +241,7 @@ export const MapConsole: React.FC = () => {
         selectedIncidentId ? createDriftHeatmapLayer(activeDriftFrame, isForecastMode) : null,
 
         // 3. Suspect Vessel AIS tracks
-        selectedIncidentId && suspects ? createVesselTrackLayer(
+        ...(selectedIncidentId && suspects ? (createVesselTrackLayer(
             suspects,
             inspectedVesselMmsi,
             (info) => setHoverInfo(info.object ? { x: info.x, y: info.y, text: `${info.object.vesselName || 'Dark Vessel'} (${info.object.mmsi || 'No AIS'})` } : null),
@@ -250,7 +250,7 @@ export const MapConsole: React.FC = () => {
                     setInspectedVesselMmsi(info.object.mmsi);
                 }
             }
-        ) : null,
+        ) as any[]) : []),
 
         // 4. India Exclusive Economic Zone (EEZ)
         showEez ? new PathLayer({

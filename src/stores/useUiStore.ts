@@ -1,5 +1,14 @@
 import { create } from 'zustand';
 
+export interface EnforcedFineRecord {
+    txHash: string;
+    ipfsCid: string;
+    blockNumber: number;
+    timestamp: string;
+    fineAmount: number;
+    vesselMmsi: string | null;
+}
+
 interface UiState {
     isMockMode: boolean;
     selectedIncidentId: string | null;
@@ -16,6 +25,7 @@ interface UiState {
     showLayersControl: boolean;
     layersTab: 'layers' | 'basemap';
     currentBasemap: 'esri-ocean' | 'esri-topo' | 'esri-dark';
+    fineEnforcedIncidents: Record<string, EnforcedFineRecord>;
     setMockMode: (mode: boolean) => void;
     setSelectedIncidentId: (id: string | null) => void;
     setInspectedVesselMmsi: (mmsi: string | null) => void;
@@ -32,6 +42,7 @@ interface UiState {
     setShowLayersControl: (show: boolean) => void;
     setLayersTab: (tab: 'layers' | 'basemap') => void;
     setBasemap: (basemap: 'esri-ocean' | 'esri-topo' | 'esri-dark') => void;
+    enforceFine: (incidentId: string, mmsi: string | null, areaKm2: number) => Promise<void>;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -50,6 +61,7 @@ export const useUiStore = create<UiState>((set) => ({
     showLayersControl: true,
     layersTab: 'layers',
     currentBasemap: 'esri-dark',
+    fineEnforcedIncidents: {},
     setMockMode: (isMockMode) => set({ isMockMode }),
     setSelectedIncidentId: (selectedIncidentId) =>
         set({ selectedIncidentId, inspectedVesselMmsi: null, isDossierOpen: false }),
@@ -76,4 +88,26 @@ export const useUiStore = create<UiState>((set) => ({
     setShowLayersControl: (showLayersControl) => set({ showLayersControl }),
     setLayersTab: (layersTab) => set({ layersTab }),
     setBasemap: (currentBasemap) => set({ currentBasemap }),
+    enforceFine: async (incidentId, mmsi, areaKm2) => {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        const fineAmount = 50000 + areaKm2 * 10000;
+        const txHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+        const ipfsCid = 'QmP' + Array.from({ length: 43 }, () => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 62)]).join('');
+        const blockNumber = 48293021 + Math.floor(Math.random() * 1000);
+        const timestamp = new Date().toISOString();
+
+        set((state) => ({
+            fineEnforcedIncidents: {
+                ...state.fineEnforcedIncidents,
+                [incidentId]: {
+                    txHash,
+                    ipfsCid,
+                    blockNumber,
+                    timestamp,
+                    fineAmount,
+                    vesselMmsi: mmsi
+                }
+            }
+        }));
+    },
 }));

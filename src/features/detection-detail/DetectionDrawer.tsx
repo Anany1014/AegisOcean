@@ -94,6 +94,37 @@ export const DetectionDrawer: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Remote Sensing & ML Pipeline Diagnostics */}
+                <div className="space-y-2 border-t border-[var(--hairline)] pt-4">
+                    <h3 className="font-display font-semibold text-[10px] tracking-wider text-[var(--foam-dim)] uppercase">
+                        Remote Sensing & ML Pipeline
+                    </h3>
+                    <div className="bg-[var(--abyss)] p-3 border border-[var(--hairline)] rounded-[var(--radius-card)] space-y-2 text-[10px] font-mono">
+                        <div className="flex justify-between">
+                            <span className="text-[var(--foam-dim)]">PREPROCESSING:</span>
+                            <span className="text-[var(--foam)]">LEE SPECKLE FILTER (7x7)</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-[var(--foam-dim)]">MODEL INF ENGINE:</span>
+                            <span className="text-[var(--foam)]">SEGFORMER-B3 (BACKSCATTER)</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-[var(--foam-dim)]">ERA5 WIND SPEED:</span>
+                            <span className={isWindArtifact ? "text-[var(--sonar-amber)] font-bold" : "text-[var(--slick-teal)] font-bold"}>
+                                {isWindArtifact ? "1.2 M/S (LOOK-ALIKE CAUGHT)" : "4.8 M/S (VALID SLICK WINDOW)"}
+                            </span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-[var(--foam-dim)]">GLCM TEXTURE CONTRAST:</span>
+                            <span className="text-[var(--foam)]">{isWindArtifact ? "0.45 (LOW CALM)" : "1.25 (PETROLEUM ANOMALY)"}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-[var(--foam-dim)]">GLCM HOMOGENEITY:</span>
+                            <span className="text-[var(--foam)]">{isWindArtifact ? "0.95" : "0.88"}</span>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Confidence metrics */}
                 <div className="space-y-4 border-t border-[var(--hairline)] pt-4">
                     <ScoreBar
@@ -102,7 +133,7 @@ export const DetectionDrawer: React.FC = () => {
                     />
                     {isWindArtifact && (
                         <div className="p-3 bg-[#F983E9]/10 border border-[#F983E9] rounded-[var(--radius-card)] text-xs text-[#F983E9] font-mono leading-relaxed">
-                            ⚠️ HIGH FALSE POSITIVE PROBABILITY. Geometrical deformation suggests wind-pattern disruption rather than mineral slick deposits.
+                            ⚠️ HIGH FALSE POSITIVE PROBABILITY. Environmental look-alike likely. Wind velocity is below the 2.0 m/s threshold required to avoid biological films and low-wind ocean calm false detections.
                         </div>
                     )}
                 </div>
