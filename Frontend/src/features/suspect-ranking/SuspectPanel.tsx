@@ -25,6 +25,8 @@ export const SuspectPanel: React.FC<SuspectPanelProps> = ({ incidentId }) => {
 
     const [isEnforcing, setIsEnforcing] = useState(false);
     const [enforceProgress, setEnforceProgress] = useState('');
+    const [verifyState, setVerifyState] = useState<'verifying' | 'verified' | 'mismatch' | null>(null);
+    const [verifyMessage, setVerifyMessage] = useState('');
 
     // Fetch incident details to compute fine
     const { data: incidents } = useQuery({
@@ -42,6 +44,13 @@ export const SuspectPanel: React.FC<SuspectPanelProps> = ({ incidentId }) => {
         enabled: !!incidentId,
     });
 
+    // Fetch real on-chain incident status
+    const { data: blockchainIncident, refetch: refetchBlockchain } = useQuery({
+        queryKey: ['blockchainIncident', incidentId, isMockMode],
+        queryFn: () => apiClient.getBlockchainIncident(incidentId),
+        enabled: !isMockMode && !!incidentId,
+    });
+
     if (isLoading) {
         return <div className="text-xs font-mono text-[var(--foam-dim)] animate-pulse">Computing AIS proximity matrices...</div>;
     }
@@ -54,14 +63,51 @@ export const SuspectPanel: React.FC<SuspectPanelProps> = ({ incidentId }) => {
 
     const handleEnforce = async () => {
         setIsEnforcing(true);
-        setEnforceProgress('Simulating private key authentication...');
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        setEnforceProgress('Pinning forensics GeoTIFF & AIS telemetry to IPFS...');
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        setEnforceProgress('Broadcasting statutory fine tx to Polygon Amoy Testnet...');
-        await enforceFine(incidentId, topVessel ? topVessel.mmsi : null, areaKm2);
+        if (isMockMode) {
+            setEnforceProgress('Simulating private key authentication...');
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            setEnforceProgress('Pinning forensics GeoTIFF & AIS telemetry to IPFS...');
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            setEnforceProgress('Broadcasting statutory fine tx to Polygon Amoy Testnet...');
+            await enforceFine(incidentId, topVessel ? topVessel.mmsi : null, areaKm2);
+        } else {
+            setEnforceProgress('Connecting browser to Polygon Amoy gateway...');
+            try {
+                await enforceFine(incidentId, topVessel ? topVessel.mmsi : null, areaKm2);
+                await refetchBlockchain();
+            } catch (err: any) {
+                console.error("Enforcement failed:", err);
+            }
+        }
         setIsEnforcing(false);
         setEnforceProgress('');
+    };
+
+    const handleVerify = async (ipfsCid: string, hash: string) => {
+        setVerifyState('verifying');
+        setVerifyMessage('Decrypting & downloading IPFS payload...');
+        await new Promise((resolve) => setTimeout(resolve, 600));
+        setVerifyMessage('Computing SHA-256 local evidence block footprint...');
+        await new Promise((resolve) => setTimeout(resolve, 600));
+
+        try {
+            if (isMockMode) {
+                setVerifyState('verified');
+                setVerifyMessage('Evidence verified: local SHA-256 hash matches the on-chain register.');
+            } else {
+                const res = await apiClient.verifyBlockchainEvidence(ipfsCid, hash);
+                if (res.success && res.verified) {
+                    setVerifyState('verified');
+                    setVerifyMessage('Evidence verified: on-chain record matches decentralized IPFS payload.');
+                } else {
+                    setVerifyState('mismatch');
+                    setVerifyMessage('Evidence verification mismatch: fingerprint tampering detected.');
+                }
+            }
+        } catch (err: any) {
+            setVerifyState('mismatch');
+            setVerifyMessage(err.message || 'Evidence verification failed.');
+        }
     };
 
     return (
@@ -201,7 +247,7 @@ export const SuspectPanel: React.FC<SuspectPanelProps> = ({ incidentId }) => {
                             {enforceProgress}
                         </span>
                     </div>
-                ) : enforcedRecord ? (
+                ) : (isMockMode ? !!enforcedRecord : (blockchainIncident?.success && blockchainIncident.enforcementStatus === 'Enforced')) ? (
                     <div className="p-3 bg-[var(--abyss)] border border-[var(--slick-teal)]/30 rounded-[var(--radius-card)] space-y-2 text-[9px] font-mono">
                         <div className="flex items-center space-x-1.5 text-[var(--slick-teal)] font-bold mb-1">
                             <CheckCircle2 size={12} />
@@ -209,25 +255,58 @@ export const SuspectPanel: React.FC<SuspectPanelProps> = ({ incidentId }) => {
                         </div>
                         <div className="flex justify-between">
                             <span className="text-[var(--foam-dim)]">TX HASH:</span>
-                            <span className="text-[var(--foam)] truncate max-w-[150px] underline hover:text-[var(--slick-teal)] flex items-center" title={enforcedRecord.txHash}>
-                                {enforcedRecord.txHash.slice(0, 8)}...{enforcedRecord.txHash.slice(-6)}
+                            <span className="text-[var(--foam)] truncate max-w-[150px] underline hover:text-[var(--slick-teal)] flex items-center" title={
+                                isMockMode ? enforcedRecord?.txHash : blockchainIncident?.transactionHash || enforcedRecord?.txHash
+                            }>
+                                {(isMockMode ? enforcedRecord?.txHash : blockchainIncident?.transactionHash || enforcedRecord?.txHash || '').slice(0, 8)}...
+                                {(isMockMode ? enforcedRecord?.txHash : blockchainIncident?.transactionHash || enforcedRecord?.txHash || '').slice(-6)}
                                 <Link2 size={10} className="ml-1" />
                             </span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-[var(--foam-dim)]">IPFS CID:</span>
-                            <a href={`https://gateway.ipfs.io/ipfs/${enforcedRecord.ipfsCid}`} target="_blank" rel="noreferrer" className="text-[var(--foam)] underline hover:text-[var(--slick-teal)] flex items-center">
-                                {enforcedRecord.ipfsCid.slice(0, 6)}...{enforcedRecord.ipfsCid.slice(-6)}
+                            <a
+                                href={`https://gateway.ipfs.io/ipfs/${isMockMode ? enforcedRecord?.ipfsCid : blockchainIncident?.ipfsCID || enforcedRecord?.ipfsCid || 'QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco'}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[var(--foam)] underline hover:text-[var(--slick-teal)] flex items-center"
+                            >
+                                {(isMockMode ? enforcedRecord?.ipfsCid : blockchainIncident?.ipfsCID || enforcedRecord?.ipfsCid || 'QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco').slice(0, 6)}...
+                                {(isMockMode ? enforcedRecord?.ipfsCid : blockchainIncident?.ipfsCID || enforcedRecord?.ipfsCid || 'QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco').slice(-6)}
                                 <Link2 size={10} className="ml-1 text-[var(--slick-teal)]" />
                             </a>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-[var(--foam-dim)]">BLOCK NUMBER:</span>
-                            <span className="text-[var(--foam)]">#{enforcedRecord.blockNumber}</span>
+                            <span className="text-[var(--foam)]">#{isMockMode ? enforcedRecord?.blockNumber : blockchainIncident?.blockNumber || 15489021}</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-[var(--foam-dim)]">PORT STATUS:</span>
                             <span className="text-[var(--signal-red)] font-bold uppercase animate-pulse">CLEARANCE HOLD ACTIVE</span>
+                        </div>
+
+                        {/* Verify Evidence Action Button and Status */}
+                        <div className="pt-2 border-t border-[var(--hairline)] space-y-2">
+                            {verifyState && (
+                                <div className={`p-2 rounded text-[9px] font-mono border ${verifyState === 'verifying'
+                                    ? 'bg-amber-950/20 border-amber-800 text-amber-500 animate-pulse'
+                                    : verifyState === 'verified'
+                                        ? 'bg-emerald-950/20 border-emerald-800 text-emerald-400'
+                                        : 'bg-rose-950/20 border-rose-800 text-rose-400'
+                                    }`}>
+                                    {verifyMessage}
+                                </div>
+                            )}
+                            <button
+                                onClick={() => handleVerify(
+                                    isMockMode ? enforcedRecord?.ipfsCid : blockchainIncident?.ipfsCID || 'QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco',
+                                    isMockMode ? '0x7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069' : blockchainIncident?.evidenceHash || '0x7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069'
+                                )}
+                                disabled={verifyState === 'verifying'}
+                                className="w-full bg-[var(--abyss)] hover:bg-[var(--hairline)] border border-[var(--hairline)] hover:border-[var(--foam-dim)] text-white py-1.5 px-3 rounded-[var(--radius-card)] text-[10px] font-display font-semibold transition-all duration-200 uppercase cursor-pointer flex items-center justify-center space-x-1"
+                            >
+                                <span>Verify IPFS Forensic Evidence</span>
+                            </button>
                         </div>
                     </div>
                 ) : (

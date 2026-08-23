@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { apiClient } from '@/lib/apiClient';
 
 export interface EnforcedFineRecord {
     txHash: string;
@@ -89,25 +90,56 @@ export const useUiStore = create<UiState>((set) => ({
     setLayersTab: (layersTab) => set({ layersTab }),
     setBasemap: (currentBasemap) => set({ currentBasemap }),
     enforceFine: async (incidentId, mmsi, areaKm2) => {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        const fineAmount = 50000 + areaKm2 * 10000;
-        const txHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-        const ipfsCid = 'QmP' + Array.from({ length: 43 }, () => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 62)]).join('');
-        const blockNumber = 48293021 + Math.floor(Math.random() * 1000);
-        const timestamp = new Date().toISOString();
+        const isMockMode = useUiStore.getState().isMockMode;
+        if (isMockMode) {
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            const fineAmount = 50000 + areaKm2 * 10000;
+            const txHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+            const ipfsCid = 'QmP' + Array.from({ length: 43 }, () => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 62)]).join('');
+            const blockNumber = 48293021 + Math.floor(Math.random() * 1000);
+            const timestamp = new Date().toISOString();
 
-        set((state) => ({
-            fineEnforcedIncidents: {
-                ...state.fineEnforcedIncidents,
-                [incidentId]: {
-                    txHash,
-                    ipfsCid,
-                    blockNumber,
-                    timestamp,
-                    fineAmount,
-                    vesselMmsi: mmsi
+            set((state) => ({
+                fineEnforcedIncidents: {
+                    ...state.fineEnforcedIncidents,
+                    [incidentId]: {
+                        txHash,
+                        ipfsCid,
+                        blockNumber,
+                        timestamp,
+                        fineAmount,
+                        vesselMmsi: mmsi
+                    }
                 }
+            }));
+            return;
+        }
+
+        try {
+            const data = await apiClient.enforceBlockchainFine(incidentId);
+            if (data.success) {
+                // Fetch incident details to retrieve the IPFS CID and fine details
+                const incidentDetails = await apiClient.getBlockchainIncident(incidentId);
+                const fineAmount = incidentDetails.fineAmountUSD || (50000 + areaKm2 * 10000);
+                const ipfsCid = incidentDetails.ipfsCID || '';
+
+                set((state) => ({
+                    fineEnforcedIncidents: {
+                        ...state.fineEnforcedIncidents,
+                        [incidentId]: {
+                            txHash: data.transactionHash,
+                            ipfsCid: ipfsCid,
+                            blockNumber: data.blockNumber,
+                            timestamp: new Date().toISOString(),
+                            fineAmount: fineAmount,
+                            vesselMmsi: mmsi
+                        }
+                    }
+                }));
             }
-        }));
+        } catch (err) {
+            console.error("Failed to enforce fine on blockchain:", err);
+            throw err;
+        }
     },
 }));
