@@ -4,6 +4,7 @@ import { useUiStore } from '@/stores/useUiStore';
 import { Card } from '@/ui/Card';
 import { Badge } from '@/ui/Badge';
 import { Anchor, ShieldAlert, Map, Loader2, Link2, DollarSign, CheckCircle2 } from 'lucide-react';
+import { VESSEL_DETECTIONS } from '@/mocks/vessels';
 
 const FigmaStar: React.FC<{ className?: string; size?: number }> = ({ className = '', size = 20 }) => (
     <svg width={size} height={size} viewBox="0 0 34 33" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
@@ -42,7 +43,20 @@ export const VesselDashboard: React.FC = () => {
         return () => clearInterval(intervalId);
     }, []);
 
-
+    // Live synchronization with fines enforced across windows/tabs
+    useEffect(() => {
+        const handleStorage = (e: StorageEvent) => {
+            if (e.key === 'aegis_fines' && e.newValue) {
+                try {
+                    useUiStore.setState({ fineEnforcedIncidents: JSON.parse(e.newValue) });
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        };
+        window.addEventListener('storage', handleStorage);
+        return () => window.removeEventListener('storage', handleStorage);
+    }, []);
 
     const handlePayment = async (incidentId: string) => {
         setPayments(prev => ({ ...prev, [incidentId]: 'paying' }));
@@ -55,12 +69,20 @@ export const VesselDashboard: React.FC = () => {
         navigate('/');
     };
 
-    // Fleet Vessels Configuration
-    const fleetVessels = [
+    // Fleet Vessels Configuration (Dynamic union of all fleet & AIS tracked vessels)
+    const baseFleet = [
+        ...VESSEL_DETECTIONS.map(v => ({
+            name: v.shipName,
+            mmsi: v.mmsi,
+            status: v.status === 'high_risk' ? 'HOLD' : 'ACTIVE',
+            type: v.vesselType,
+        })),
         { name: 'M.T. Ocean Sentinel', mmsi: '367123456', status: 'HOLD', type: 'Crude Oil Tanker' },
         { name: 'M.T. Gulf Voyager', mmsi: '368654321', status: 'ACTIVE', type: 'Chemical Carrier' },
         { name: 'M.T. Amoy Express', mmsi: '566123456', status: 'ACTIVE', type: 'Container Ship' },
     ];
+
+    const fleetVessels = Array.from(new Map(baseFleet.map(v => [v.mmsi, v])).values());
 
     // Find enforced incidents matching our fleet MMSIs
     const enforcedList = Object.keys(fineEnforcedIncidents).map(id => {
@@ -74,7 +96,7 @@ export const VesselDashboard: React.FC = () => {
             timestamp: r.timestamp,
             fineAmount: r.fineAmount,
             vesselMmsi: r.vesselMmsi,
-            vesselName: match ? match.name : 'Unknown Vessel'
+            vesselName: match ? match.name : (r.vesselMmsi ? `Vessel MMSI ${r.vesselMmsi}` : 'Dark Vessel [Unidentified]'),
         };
     });
 
