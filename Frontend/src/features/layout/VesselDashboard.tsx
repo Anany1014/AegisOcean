@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUiStore } from '@/stores/useUiStore';
 import { Card } from '@/ui/Card';
 import { Badge } from '@/ui/Badge';
-import { Anchor, ShieldAlert, Map, Loader2, Link2, DollarSign, CheckCircle2 } from 'lucide-react';
+import { Anchor, ShieldAlert, Navigation, Loader2, Link2, DollarSign, CheckCircle2 } from 'lucide-react';
 import { VESSEL_DETECTIONS } from '@/mocks/vessels';
 
 const FigmaStar: React.FC<{ className?: string; size?: number }> = ({ className = '', size = 20 }) => (
@@ -129,7 +129,7 @@ export const VesselDashboard: React.FC = () => {
                         onClick={handleBackClick}
                         className="px-3 py-1.5 text-[10px] font-mono tracking-widest text-[var(--slick-teal)] border border-[var(--slick-teal)]/20 hover:border-[var(--slick-teal)]/60 hover:bg-[var(--slick-teal)]/10 rounded-[var(--radius-chip)] transition-all flex items-center space-x-1.5 cursor-pointer uppercase font-bold"
                     >
-                        <Map size={12} />
+                        <Navigation size={12} />
                         <span>COMMAND CENTER</span>
                     </button>
                     <button
@@ -143,25 +143,70 @@ export const VesselDashboard: React.FC = () => {
                     </button>
                 </div>
             </header>
+            {/* Smart Contract & Compliance Overview Header */}
+            <div className="bg-[var(--panel-raised)] border-b border-[var(--hairline)] px-6 py-3 flex items-center justify-between z-30">
+                <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-2 text-[10px] font-mono">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="text-white/60 uppercase">SMART CONTRACT:</span>
+                        <span className="text-[var(--slick-teal)] font-bold">0x71b2D14704E94833215264b971a8069502A562B3</span>
+                    </div>
+                    <div className="hidden md:flex items-center space-x-2 text-[10px] font-mono">
+                        <span className="text-white/40">NETWORK:</span>
+                        <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40 font-bold text-[9px]">
+                            POLYGON AMOY (80002)
+                        </span>
+                    </div>
+                    <div className="hidden lg:flex items-center space-x-2 text-[10px] font-mono">
+                        <span className="text-white/40">IPFS MERKLE PROOFS:</span>
+                        <span className="text-emerald-400 font-bold text-[9px]">DECENTRALIZED ACTIVE</span>
+                    </div>
+                </div>
+
+                <div className="flex items-center space-x-4 text-xs font-mono">
+                    <div>
+                        <span className="text-white/40 text-[9px] uppercase mr-1.5">ACTIVE PORT HOLDS:</span>
+                        <span className="text-red-400 font-bold">{fleetVessels.filter(v => enforcedList.some(e => e.vesselMmsi === v.mmsi && payments[e.id] !== 'paid')).length}</span>
+                    </div>
+                    <div>
+                        <span className="text-white/40 text-[9px] uppercase mr-1.5">TOTAL FINES IMPOSED:</span>
+                        <span className="text-amber-400 font-bold text-sm">
+                            ${(enforcedList.reduce((sum, c) => sum + c.fineAmount, 0) / 1000).toFixed(0)}k USD
+                        </span>
+                    </div>
+                </div>
+            </div>
 
             {/* Content Area */}
             <main className="flex-1 flex overflow-hidden p-6 gap-6 relative z-10">
                 {/* Left Panel: Fleet Status Panel */}
                 <div className="w-[380px] flex flex-col space-y-4">
-                    <h2 className="font-display font-semibold text-xs tracking-wider text-[var(--foam-dim)] uppercase">Registered Fleet Vessels</h2>
+                    <div className="flex items-center justify-between">
+                        <h2 className="font-display font-semibold text-xs tracking-wider text-[var(--foam-dim)] uppercase">Registered Fleet Vessels ({fleetVessels.length})</h2>
+                        <span className="text-[9px] font-mono text-cyan-400">BLUE DOTS</span>
+                    </div>
+
                     <div className="flex-1 overflow-y-auto space-y-3 pr-1">
                         {fleetVessels.map(vessel => {
                             const hasActiveHold = enforcedList.some(e => e.vesselMmsi === vessel.mmsi && payments[e.id] !== 'paid') || vessel.status === 'HOLD';
+                            const vesselFine = enforcedList.find(e => e.vesselMmsi === vessel.mmsi);
                             return (
-                                <Card key={vessel.mmsi} className={`p-4 border ${hasActiveHold ? 'border-dashed border-[var(--signal-red)] bg-[rgba(225,72,60,0.03)]' : 'border-white/10 bg-white/5'}`}>
+                                <Card key={vessel.mmsi} className={`p-4 border transition-all duration-200 ${hasActiveHold ? 'border-dashed border-[var(--signal-red)] bg-[rgba(225,72,60,0.04)] shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'border-white/10 bg-white/5'}`}>
                                     <div className="flex items-start justify-between">
                                         <div>
                                             <div className="flex items-center space-x-2 text-[9px] font-mono text-[var(--foam-dim)] tracking-wider uppercase mb-1">
                                                 <Anchor size={11} className={hasActiveHold ? "text-[var(--signal-red)]" : "text-[var(--slick-teal)]"} />
                                                 <span>MMSI: {vessel.mmsi}</span>
                                             </div>
-                                            <h4 className="font-display font-bold text-sm text-white">{vessel.name}</h4>
+                                            <h4 className="font-display font-bold text-sm text-white flex items-center space-x-1.5">
+                                                <span>{vessel.name}</span>
+                                            </h4>
                                             <p className="text-[10px] font-mono text-[var(--foam-dim)] opacity-65">{vessel.type}</p>
+                                            {vesselFine && (
+                                                <div className="mt-2 text-[10px] font-mono text-amber-400 font-bold">
+                                                    Statutory Fine: ${vesselFine.fineAmount.toLocaleString()} USD
+                                                </div>
+                                            )}
                                         </div>
                                         <Badge variant={hasActiveHold ? 'red' : 'teal'}>
                                             {hasActiveHold ? 'PORT HOLD ACTIVE' : 'CLEAR'}
@@ -175,7 +220,14 @@ export const VesselDashboard: React.FC = () => {
 
                 {/* Right Panel: Citations Ledger */}
                 <div className="flex-1 flex flex-col space-y-4">
-                    <h2 className="font-display font-semibold text-xs tracking-wider text-[var(--foam-dim)] uppercase">Pending Citations & Fines Ledger</h2>
+                    <div className="flex items-center justify-between">
+                        <h2 className="font-display font-semibold text-xs tracking-wider text-[var(--foam-dim)] uppercase">
+                            Smart Contract Citations & Fines Ledger ({enforcedList.length})
+                        </h2>
+                        <span className="text-[9px] font-mono text-purple-300 bg-purple-900/30 px-2 py-0.5 rounded border border-purple-500/30">
+                            SOLIDITY ON-CHAIN PROOFS
+                        </span>
+                    </div>
 
                     <div className="flex-1 overflow-y-auto space-y-4 pr-1">
                         {enforcedList.length === 0 ? (
@@ -189,14 +241,17 @@ export const VesselDashboard: React.FC = () => {
                                 const currentPaymentStatus = payments[citation.id] || 'pending';
 
                                 return (
-                                    <Card key={citation.id} className="p-5 border border-white/10 bg-white/3 flex flex-col justify-between space-y-4 relative overflow-hidden">
+                                    <Card key={citation.id} className="p-5 border border-white/10 bg-white/3 flex flex-col justify-between space-y-4 relative overflow-hidden shadow-xl">
                                         <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-red-500" />
                                         {currentPaymentStatus === 'paid' && <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-[var(--slick-teal)]" />}
 
                                         <div className="flex justify-between items-start pl-2">
                                             <div className="space-y-1">
                                                 <div className="flex items-center space-x-2 text-[9px] font-mono tracking-wider uppercase text-[var(--foam-dim)]">
-                                                    <span className="text-red-400 font-bold uppercase"><ShieldAlert size={10} className="inline mr-1" />CITATION DETECTED</span>
+                                                    <span className="text-red-400 font-bold uppercase flex items-center">
+                                                        <ShieldAlert size={10} className="inline mr-1" />
+                                                        STATUTORY FINE ANCHORED
+                                                    </span>
                                                     <span>·</span>
                                                     <span>MMSI: {citation.vesselMmsi} ({citation.vesselName})</span>
                                                 </div>
@@ -207,73 +262,75 @@ export const VesselDashboard: React.FC = () => {
                                             </div>
 
                                             <div className="text-right">
-                                                <span className="text-[9px] font-mono text-[var(--foam-dim)] uppercase block">Citation Fine</span>
-                                                <span className="text-xl font-display font-black text-[var(--signal-red)]">${citation.fineAmount.toLocaleString()} USD</span>
+                                                <span className="text-[9px] font-mono text-[var(--foam-dim)] uppercase block">Imposed Fine Amount</span>
+                                                <span className="text-2xl font-display font-black text-[var(--signal-red)]">${citation.fineAmount.toLocaleString()} USD</span>
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-3 gap-3 bg-[var(--abyss)] p-3 rounded-[var(--radius-card)] border border-[var(--hairline)] pl-5 text-[10px] font-mono text-[var(--foam-dim)]">
+                                        <div className="grid grid-cols-3 gap-3 bg-[var(--abyss)] p-3.5 rounded-[var(--radius-card)] border border-[var(--hairline)] pl-5 text-[10px] font-mono text-[var(--foam-dim)]">
                                             <div>
-                                                <div className="text-[8px] opacity-40 uppercase mb-0.5">Anchored Tx Block</div>
-                                                <span className="text-white">#{citation.blockNumber}</span>
+                                                <div className="text-[8px] opacity-40 uppercase mb-0.5">Polygon Block Number</div>
+                                                <span className="text-purple-300 font-bold">#{citation.blockNumber}</span>
                                             </div>
                                             <div className="truncate">
-                                                <div className="text-[8px] opacity-40 uppercase mb-0.5">On-Chain Tx Hash</div>
-                                                <span className="text-white hover:text-[var(--slick-teal)] underline cursor-pointer" title={citation.txHash}>
-                                                    {citation.txHash.slice(0, 10)}...
+                                                <div className="text-[8px] opacity-40 uppercase mb-0.5">Smart Contract Tx Hash</div>
+                                                <span className="text-white hover:text-[var(--slick-teal)] underline cursor-pointer font-mono" title={citation.txHash}>
+                                                    {citation.txHash.slice(0, 14)}...
                                                 </span>
                                             </div>
                                             <div className="truncate">
-                                                <div className="text-[8px] opacity-40 uppercase mb-0.5">Forensic IPFS Dossier</div>
+                                                <div className="text-[8px] opacity-40 uppercase mb-0.5">Forensic IPFS Dossier CID</div>
                                                 <a
                                                     href={`https://gateway.ipfs.io/ipfs/${citation.ipfsCid}`}
                                                     target="_blank"
                                                     rel="noreferrer"
-                                                    className="text-[var(--slick-teal)] underline hover:text-white flex items-center"
+                                                    className="text-[var(--slick-teal)] underline hover:text-white flex items-center font-mono"
                                                 >
-                                                    {citation.ipfsCid.slice(0, 8)}...
-                                                    <Link2 size={8} className="ml-1" />
+                                                    {citation.ipfsCid.slice(0, 12)}...
+                                                    <Link2 size={9} className="ml-1" />
                                                 </a>
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center justify-between pt-2 pl-2">
+                                        <div className="flex items-center justify-between pt-2 pl-2 border-t border-[var(--hairline)]">
                                             <div className="flex items-center space-x-2 text-[10px] font-mono">
-                                                <span className="opacity-50">Clearance Status:</span>
+                                                <span className="opacity-50">Port Clearance:</span>
                                                 {currentPaymentStatus === 'paid' ? (
                                                     <span className="text-[var(--slick-teal)] font-bold uppercase flex items-center">
-                                                        <CheckCircle2 size={11} className="mr-1 inline" /> PAID & RELEASED
+                                                        <CheckCircle2 size={12} className="mr-1 inline" /> PAID ON-CHAIN & RELEASED
                                                     </span>
                                                 ) : (
                                                     <span className="text-[var(--signal-red)] font-bold uppercase animate-pulse flex items-center">
-                                                        <ShieldAlert size={11} className="mr-1 inline" /> PORT CLEARANCE REVOKED
+                                                        <ShieldAlert size={12} className="mr-1 inline" /> PORT CLEARANCE REVOKED (HOLD)
                                                     </span>
                                                 )}
                                             </div>
 
-                                            {currentPaymentStatus === 'pending' && (
-                                                <button
-                                                    onClick={() => handlePayment(citation.id)}
-                                                    className="px-4 py-2 bg-[var(--signal-red)] text-white text-[10px] font-bold tracking-wider rounded-[var(--radius-chip)] cursor-pointer hover:bg-red-600 transition-all flex items-center uppercase space-x-1"
-                                                >
-                                                    <DollarSign size={11} />
-                                                    <span>Settle Fine Notice</span>
-                                                </button>
-                                            )}
+                                            <div className="flex items-center space-x-2">
+                                                {currentPaymentStatus === 'pending' && (
+                                                    <button
+                                                        onClick={() => handlePayment(citation.id)}
+                                                        className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white text-[10px] font-bold tracking-wider rounded-[var(--radius-chip)] cursor-pointer transition-all flex items-center uppercase space-x-1 shadow-[0_0_12px_rgba(239,68,68,0.3)]"
+                                                    >
+                                                        <DollarSign size={11} />
+                                                        <span>Settle Fine Notice</span>
+                                                    </button>
+                                                )}
 
-                                            {currentPaymentStatus === 'paying' && (
-                                                <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-[var(--radius-chip)] text-[10px] font-mono text-[var(--foam-dim)] flex items-center space-x-1.5 uppercase">
-                                                    <Loader2 size={12} className="animate-spin text-[var(--slick-teal)]" />
-                                                    <span>Processing Payment...</span>
-                                                </div>
-                                            )}
+                                                {currentPaymentStatus === 'paying' && (
+                                                    <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-[var(--radius-chip)] text-[10px] font-mono text-[var(--foam-dim)] flex items-center space-x-1.5 uppercase">
+                                                        <Loader2 size={12} className="animate-spin text-[var(--slick-teal)]" />
+                                                        <span>Broadcasting Settlement Tx...</span>
+                                                    </div>
+                                                )}
 
-                                            {currentPaymentStatus === 'paid' && (
-                                                <div className="px-4 py-2 border border-[var(--slick-teal)]/30 text-[var(--slick-teal)] text-[10px] font-bold rounded-[var(--radius-chip)] flex items-center uppercase space-x-1 bg-[rgba(0,242,254,0.05)]">
-                                                    <CheckCircle2 size={11} />
-                                                    <span>Citation Settled</span>
-                                                </div>
-                                            )}
+                                                {currentPaymentStatus === 'paid' && (
+                                                    <div className="px-4 py-2 border border-[var(--slick-teal)]/40 text-[var(--slick-teal)] text-[10px] font-bold rounded-[var(--radius-chip)] flex items-center uppercase space-x-1 bg-[rgba(0,242,254,0.08)]">
+                                                        <CheckCircle2 size={11} />
+                                                        <span>Settlement Finalized On-Chain</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </Card>
                                 );

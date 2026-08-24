@@ -185,5 +185,10 @@ export const useUiStore = create<UiState>((set) => ({
                     saveStoredFines(updated);
                     return { fineEnforcedIncidents: updated };
                 });
+            }
+        } catch (err) {
+            console.error("Failed to enforce fine on blockchain:", err);
+            throw err;
+        }
     },
 }));

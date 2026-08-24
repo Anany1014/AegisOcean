@@ -11,9 +11,14 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 export const AppRoutes: React.FC = () => {
+    // Port 5180 is the dedicated Blockchain & Smart Contracts Portal
+    const isBlockchainPort = typeof window !== 'undefined' && window.location.port === '5180';
+
     return (
         <Routes>
-            <Route path="/" element={<WorkspaceDashboard />} />
+            <Route path="/" element={isBlockchainPort ? <VesselDashboard /> : <WorkspaceDashboard />} />
+            <Route path="/map" element={<WorkspaceDashboard />} />
+            <Route path="/triage" element={<WorkspaceDashboard />} />
             <Route path="/incident/:id" element={<WorkspaceDashboard />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/vessel-dashboard" element={<VesselDashboard />} />
