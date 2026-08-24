@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/apiClient';
 import { useUiStore } from '@/stores/useUiStore';
 import { ScoreBar } from '@/ui/ScoreBar';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Brain, BarChart2 } from 'lucide-react';
 import { SuspectPanel } from '@/features/suspect-ranking/SuspectPanel';
+import { MLInsightPanel } from '@/features/ml-insights/MLInsightPanel';
 
 export const DetectionDrawer: React.FC = () => {
     const { selectedIncidentId, setSelectedIncidentId, isMockMode } = useUiStore();
+    const [drawerTab, setDrawerTab] = useState<'analysis' | 'ml'>('analysis');
 
     const { data: incidents } = useQuery({
         queryKey: ['incidents', isMockMode],
@@ -29,7 +31,7 @@ export const DetectionDrawer: React.FC = () => {
     const perimeter = incident.areaKm2 * incident.perimeterToAreaRatio * 3.5;
 
     return (
-        <div className="absolute top-0 bottom-0 right-0 w-[400px] bg-[var(--panel)] border-l border-[var(--hairline)] flex flex-col shadow-[var(--shadow-drawer)] z-30 animate-fade-in">
+        <div className="absolute top-0 bottom-0 right-0 w-[420px] bg-[var(--panel)] border-l border-[var(--hairline)] flex flex-col shadow-[var(--shadow-drawer)] z-30 animate-fade-in">
             {/* Header */}
             <div className="h-16 border-b border-[var(--hairline)] px-6 flex items-center justify-between bg-[var(--panel)]">
                 <div>
@@ -46,8 +48,34 @@ export const DetectionDrawer: React.FC = () => {
                 </button>
             </div>
 
-            {/* Scrollable Information Body */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            {/* Tab switcher — Analysis vs ML Intelligence */}
+            <div className="flex border-b border-[var(--hairline)] flex-shrink-0">
+                {[
+                    { key: 'analysis', label: 'Analysis', icon: <BarChart2 className="w-3 h-3" /> },
+                    { key: 'ml',       label: 'ML Intelligence', icon: <Brain className="w-3 h-3" /> },
+                ].map(tab => (
+                    <button
+                        key={tab.key}
+                        onClick={() => setDrawerTab(tab.key as 'analysis' | 'ml')}
+                        className={`flex-1 flex items-center justify-center space-x-1.5 py-2.5 text-[9px] font-mono tracking-wider transition-colors cursor-pointer
+                            ${drawerTab === tab.key
+                                ? 'text-[var(--slick-teal)] border-b-2 border-[var(--slick-teal)] bg-[var(--slick-teal)]/5'
+                                : 'text-white/40 hover:text-white/70'
+                            }`}
+                    >
+                        {tab.icon}
+                        <span className="uppercase">{tab.label}</span>
+                    </button>
+                ))}
+            </div>
+
+            {/* ML Intelligence Tab */}
+            {drawerTab === 'ml' && (
+                <MLInsightPanel incident={incident} />
+            )}
+
+            {/* Scrollable Information Body (Analysis Tab) */}
+            {drawerTab === 'analysis' && <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {/* Detection thumbnail simulator */}
                 <div className="relative h-44 bg-[var(--abyss)] rounded-[var(--radius-card)] border border-[var(--hairline)] overflow-hidden flex items-center justify-center p-3">
                     {/* Mock Radar scan lines */}
@@ -142,7 +170,7 @@ export const DetectionDrawer: React.FC = () => {
                 <div className="border-t border-[var(--hairline)] pt-4">
                     <SuspectPanel incidentId={selectedIncidentId} />
                 </div>
-            </div>
+            </div>}
 
             {/* Drawer Action Bar */}
             <div className="h-14 border-t border-[var(--hairline)] px-6 flex items-center justify-between bg-[var(--abyss)] text-[10px] font-mono text-[var(--foam-dim)]">

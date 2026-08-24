@@ -1,0 +1,35 @@
+[
+    {
+        "incident_id": "inc-2026-001",
+        "oil_probability": 0.9312,
+        "is_oil": true,
+        "confidence_class": "HIGH",
+        "threshold_used": 0.5315,
+        "bonn_class": "BA-4 (True Oil Colors)",
+        "model_epoch": 49,
+        "source": "heuristic",
+        "notes": "PAR=0.42 (compact), Area=14.8 km², Low wind artifact (0.12)"
+    },
+    {
+        "incident_id": "inc-2026-002",
+        "oil_probability": 0.1540,
+        "is_oil": false,
+        "confidence_class": "HIGH",
+        "threshold_used": 0.5315,
+        "bonn_class": null,
+        "model_epoch": 49,
+        "source": "heuristic",
+        "notes": "PAR=0.78 (jagged/dendritic), High wind artifact (0.82) → likely look-alike"
+    },
+    {
+        "incident_id": "inc-2026-003",
+        "oil_probability": 0.9748,
+        "is_oil": true,
+        "confidence_class": "HIGH",
+        "threshold_used": 0.5315,
+        "bonn_class": "BA-5 (Heavy Crude)",
+        "model_epoch": 49,
+        "source": "heuristic",
+        "notes": "PAR=0.31 (very compact), Area=22.5 km², Negligible wind artifact (0.05)"
+    }
+]

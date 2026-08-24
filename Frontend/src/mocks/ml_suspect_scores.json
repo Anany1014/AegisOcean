@@ -1,0 +1,77 @@
+[
+    {
+        "mmsi": "244770842",
+        "vessel_name": "MV Pacific Star",
+        "vessel_type": "Crude Oil Tanker",
+        "vessel_risk": 1.0,
+        "observed_prox_km": 0.4,
+        "predicted_prox_km": 0.31,
+        "dark_vessel_flag": 1,
+        "speed_drop_score": 0.871,
+        "suspect_score": 0.9021,
+        "predicted_track": [
+            { "lat": 18.8312, "lon": 72.5421 },
+            { "lat": 18.8419, "lon": 72.5533 },
+            { "lat": 18.8521, "lon": 72.5641 },
+            { "lat": 18.8618, "lon": 72.5745 },
+            { "lat": 18.8710, "lon": 72.5843 },
+            { "lat": 18.8799, "lon": 72.5938 },
+            { "lat": 18.8884, "lon": 72.6029 },
+            { "lat": 18.8965, "lon": 72.6116 }
+        ]
+    },
+    {
+        "mmsi": null,
+        "vessel_name": "Dark Vessel [Unidentified]",
+        "vessel_type": "Unknown (Non-transponding)",
+        "vessel_risk": 0.9,
+        "observed_prox_km": 1.2,
+        "predicted_prox_km": null,
+        "dark_vessel_flag": 1,
+        "speed_drop_score": 0.0,
+        "suspect_score": 0.7900,
+        "predicted_track": []
+    },
+    {
+        "mmsi": "352002459",
+        "vessel_name": "NEW FRONTIER 2",
+        "vessel_type": "Chemical Tanker",
+        "vessel_risk": 1.0,
+        "observed_prox_km": 2.1,
+        "predicted_prox_km": 1.85,
+        "dark_vessel_flag": 1,
+        "speed_drop_score": 0.903,
+        "suspect_score": 0.6892,
+        "predicted_track": [
+            { "lat": 19.1145, "lon": 72.8631 },
+            { "lat": 19.1231, "lon": 72.8741 },
+            { "lat": 19.1312, "lon": 72.8847 },
+            { "lat": 19.1389, "lon": 72.8949 },
+            { "lat": 19.1461, "lon": 72.9047 },
+            { "lat": 19.1529, "lon": 72.9141 },
+            { "lat": 19.1593, "lon": 72.9231 },
+            { "lat": 19.1653, "lon": 72.9317 }
+        ]
+    },
+    {
+        "mmsi": "311000109",
+        "vessel_name": "Oceanic Quest",
+        "vessel_type": "Container Ship",
+        "vessel_risk": 0.7,
+        "observed_prox_km": 2.8,
+        "predicted_prox_km": 3.1,
+        "dark_vessel_flag": 0,
+        "speed_drop_score": 0.12,
+        "suspect_score": 0.3080,
+        "predicted_track": [
+            { "lat": 18.6610, "lon": 72.5820 },
+            { "lat": 18.6738, "lon": 72.5971 },
+            { "lat": 18.6861, "lon": 72.6117 },
+            { "lat": 18.6979, "lon": 72.6258 },
+            { "lat": 18.7093, "lon": 72.6394 },
+            { "lat": 18.7202, "lon": 72.6525 },
+            { "lat": 18.7306, "lon": 72.6651 },
+            { "lat": 18.7406, "lon": 72.6772 }
+        ]
+    }
+]
