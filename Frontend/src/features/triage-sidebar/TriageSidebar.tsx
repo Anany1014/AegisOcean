@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/apiClient';
 import { useUiStore } from '@/stores/useUiStore';
 import { IncidentListItem } from './IncidentListItem';
+import { VesselListItem } from './VesselListItem';
+import { VESSEL_DETECTIONS, VesselDetection } from '@/mocks/vessels';
 import { Card } from '@/ui/Card';
 import { Badge } from '@/ui/Badge';
 import { Filter, ArrowUpDown, RefreshCw, ChevronDown, ChevronRight, Layers, MapPin, Eye, Compass } from 'lucide-react';
@@ -212,6 +214,7 @@ const AttestationForm: React.FC<{ onComplete: () => void }> = ({ onComplete }) =
 export const TriageSidebar: React.FC = () => {
     const {
         isMockMode, selectedIncidentId, setSelectedIncidentId,
+        inspectedVesselMmsi, setInspectedVesselMmsi,
         showEez, setShowEez,
         showPorts, setShowPorts,
         showDensity, setShowDensity,
@@ -222,6 +225,7 @@ export const TriageSidebar: React.FC = () => {
     } = useUiStore();
 
     const [activeTab, setActiveTab] = useState<'detections' | 'layers'>('detections');
+    const [detectionCategory, setDetectionCategory] = useState<'all' | 'slicks' | 'vessels'>('all');
     const [filterStatus, setFilterStatus] = useState<'all' | 'unreviewed' | 'confirmed'>('all');
     const [sortBy, setSortBy] = useState<'date' | 'area'>('date');
     const [isLegendOpen, setIsLegendOpen] = useState(false);
@@ -245,6 +249,7 @@ export const TriageSidebar: React.FC = () => {
             })
         : [];
 
+    const totalDetectionsCount = (incidents?.length || 0) + VESSEL_DETECTIONS.length;
     const years = [2025, 2024, 2023, 2022, 2021, 2020];
 
     return (
@@ -277,7 +282,7 @@ export const TriageSidebar: React.FC = () => {
                         : 'text-[var(--foam-dim)] hover:text-[var(--foam)]'
                         }`}
                 >
-                    Detections ({processedIncidents.length})
+                    Detections ({totalDetectionsCount})
                 </button>
                 <button
                     onClick={() => setActiveTab('layers')}
@@ -303,8 +308,37 @@ export const TriageSidebar: React.FC = () => {
                         </button>
                     </div>
 
+                    {/* Category Filter Pills (All / SAR Slicks / Vessels) */}
+                    <div className="p-2 bg-[var(--panel)] border-b border-[var(--hairline)] flex items-center space-x-1.5 text-[9px] font-mono">
+                        <button
+                            onClick={() => setDetectionCategory('all')}
+                            className={`flex-1 py-1 rounded px-2 text-center transition-colors ${detectionCategory === 'all'
+                                ? 'bg-white/10 text-white font-bold border border-white/20'
+                                : 'text-white/50 hover:text-white'}`}
+                        >
+                            ALL ({totalDetectionsCount})
+                        </button>
+                        <button
+                            onClick={() => setDetectionCategory('slicks')}
+                            className={`flex-1 py-1 rounded px-2 text-center transition-colors ${detectionCategory === 'slicks'
+                                ? 'bg-[#F983E9]/20 text-[#F983E9] font-bold border border-[#F983E9]/40'
+                                : 'text-white/50 hover:text-white'}`}
+                        >
+                            SAR ({processedIncidents.length})
+                        </button>
+                        <button
+                            onClick={() => setDetectionCategory('vessels')}
+                            className={`flex-1 py-1 rounded px-2 text-center transition-colors flex items-center justify-center space-x-1 ${detectionCategory === 'vessels'
+                                ? 'bg-cyan-500/20 text-[#00f2fe] font-bold border border-cyan-400/40'
+                                : 'text-white/50 hover:text-white'}`}
+                        >
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#00f2fe]" />
+                            <span>VESSELS ({VESSEL_DETECTIONS.length})</span>
+                        </button>
+                    </div>
+
                     {/* Sorting & Filter controls */}
-                    <div className="p-3 bg-[var(--abyss)] border-b border-[var(--hairline)] flex flex-col space-y-2">
+                    <div className="p-2.5 bg-[var(--abyss)] border-b border-[var(--hairline)] flex flex-col space-y-2">
                         <div className="flex items-center justify-between text-[10px] font-mono text-[var(--foam-dim)]">
                             <div className="flex items-center space-x-2">
                                 <Filter size={10} />
@@ -313,7 +347,7 @@ export const TriageSidebar: React.FC = () => {
                                     onChange={(e: any) => setFilterStatus(e.target.value)}
                                     className="bg-transparent border-none text-[var(--slick-teal)] font-bold focus:outline-none cursor-pointer"
                                 >
-                                    <option value="all" className="bg-[var(--panel)]">ALL DETECTIONS</option>
+                                    <option value="all" className="bg-[var(--panel)]">ALL STATUSES</option>
                                     <option value="unreviewed" className="bg-[var(--panel)]">UNREVIEWED</option>
                                     <option value="confirmed" className="bg-[var(--panel)]">CONFIRMED</option>
                                 </select>
@@ -329,7 +363,7 @@ export const TriageSidebar: React.FC = () => {
                     </div>
 
                     {/* Main List */}
-                    <div className="flex-1 overflow-y-auto px-4 py-3">
+                    <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
                         {isAttesting ? (
                             <AttestationForm onComplete={() => { setIsAttesting(false); refetch(); }} />
                         ) : isLoading ? (
@@ -341,7 +375,7 @@ export const TriageSidebar: React.FC = () => {
                                     <div className="w-3 h-3 bg-[var(--slick-teal)] rounded-full shadow-[0_0_12px_var(--slick-teal)]" />
                                 </div>
                                 <span className="text-[10px] font-mono tracking-widest text-[var(--foam-dim)] uppercase">
-                                    SCANNING SAR PASSES...
+                                    SCANNING SAR & AIS SENSORS...
                                 </span>
                             </div>
                         ) : isError ? (
@@ -349,22 +383,68 @@ export const TriageSidebar: React.FC = () => {
                                 <p className="text-xs font-mono text-[var(--signal-red)] font-semibold mb-2">FEED SOURCE FAULT</p>
                                 <p className="text-[10px] text-[var(--foam-dim)] leading-relaxed">Could not fetch incident list. Verify target API gateway is online.</p>
                             </div>
-                        ) : processedIncidents.length === 0 ? (
-                            <div className="h-40 flex flex-col items-center justify-center text-center p-6 text-[var(--foam-dim)] font-mono">
-                                <div className="w-8 h-8 border border-dashed border-[var(--hairline)] rounded-full mb-3 flex items-center justify-center opacity-50">?</div>
-                                <span className="text-xs font-semibold text-[var(--foam)] mb-1">NO ACTIVE DETECTIONS</span>
-                                <span className="text-[9px] opacity-60">Scanning latest satellite SAR radar frames...</span>
-                            </div>
                         ) : (
-                            processedIncidents.map((incident) => (
-                                <div key={incident.id} className="animate-fade-in">
-                                    <IncidentListItem
-                                        incident={incident}
-                                        isSelected={incident.id === selectedIncidentId}
-                                        onClick={() => setSelectedIncidentId(incident.id)}
-                                    />
-                                </div>
-                            ))
+                            <>
+                                {/* 1. Vessel Detections (Shown when 'all' or 'vessels' selected) */}
+                                {(detectionCategory === 'all' || detectionCategory === 'vessels') && (
+                                    <div className="space-y-2">
+                                        {detectionCategory === 'all' && (
+                                            <div className="flex items-center justify-between text-[9px] font-mono text-cyan-400 font-bold uppercase tracking-wider px-1 pt-1">
+                                                <span className="flex items-center space-x-1.5">
+                                                    <span className="w-2 h-2 rounded-full bg-[#00f2fe] animate-pulse" />
+                                                    <span>AIS Tracked Vessels ({VESSEL_DETECTIONS.length})</span>
+                                                </span>
+                                                <span className="text-white/40 text-[8px]">BLUE DOTS</span>
+                                            </div>
+                                        )}
+                                        {VESSEL_DETECTIONS.map((vessel) => (
+                                            <div key={vessel.id} className="animate-fade-in">
+                                                <VesselListItem
+                                                    vessel={vessel}
+                                                    isSelected={inspectedVesselMmsi === vessel.mmsi}
+                                                    onClick={() => {
+                                                        setSelectedIncidentId(vessel.incidentId);
+                                                        setInspectedVesselMmsi(vessel.mmsi);
+                                                    }}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* 2. SAR Oil Slick Detections (Shown when 'all' or 'slicks' selected) */}
+                                {(detectionCategory === 'all' || detectionCategory === 'slicks') && (
+                                    <div className="space-y-2">
+                                        {detectionCategory === 'all' && (
+                                            <div className="flex items-center justify-between text-[9px] font-mono text-[#F983E9] font-bold uppercase tracking-wider px-1 pt-2 border-t border-[var(--hairline)]">
+                                                <span className="flex items-center space-x-1.5">
+                                                    <span className="w-2 h-2 rounded-full bg-[#F983E9]" />
+                                                    <span>SAR Satellite Slicks ({processedIncidents.length})</span>
+                                                </span>
+                                                <span className="text-white/40 text-[8px]">POLYGONS</span>
+                                            </div>
+                                        )}
+                                        {processedIncidents.length === 0 ? (
+                                            <div className="text-center py-4 text-[var(--foam-dim)] font-mono text-[9px]">
+                                                No SAR detections matching current filter.
+                                            </div>
+                                        ) : (
+                                            processedIncidents.map((incident) => (
+                                                <div key={incident.id} className="animate-fade-in">
+                                                    <IncidentListItem
+                                                        incident={incident}
+                                                        isSelected={incident.id === selectedIncidentId && !inspectedVesselMmsi}
+                                                        onClick={() => {
+                                                            setSelectedIncidentId(incident.id);
+                                                            setInspectedVesselMmsi(null);
+                                                        }}
+                                                    />
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
 
@@ -372,7 +452,11 @@ export const TriageSidebar: React.FC = () => {
                     <div className="p-3 border-t border-[var(--hairline)] bg-[var(--abyss)] flex items-center justify-between text-[10px] font-mono text-[var(--foam-dim)] uppercase">
                         <span>ACTIVE DATABASE:</span>
                         <span className="text-[var(--foam)]">
-                            {processedIncidents.length} target{processedIncidents.length !== 1 ? 's' : ''} shown
+                            {detectionCategory === 'vessels'
+                                ? `${VESSEL_DETECTIONS.length} vessels`
+                                : detectionCategory === 'slicks'
+                                    ? `${processedIncidents.length} slicks`
+                                    : `${totalDetectionsCount} total detections`}
                         </span>
                     </div>
                 </>

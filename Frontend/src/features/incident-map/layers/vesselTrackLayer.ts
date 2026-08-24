@@ -68,23 +68,6 @@ export function createVesselTrackLayer(
             })
         );
 
-        // Blinking alert point at transponder dropout location
-        layers.push(
-            new ScatterplotLayer({
-                id: 'vessel-track-gap-icon',
-                data: [{ coordinates: gapCoords[0], name: 'AIS Blackout Point' }],
-                getPosition: (d: any) => d.coordinates,
-                getRadius: isInspected ? 1200 : 700,
-                radiusMinPixels: 6,
-                radiusMaxPixels: 12,
-                getFillColor: [255, 72, 60, 220],
-                getLineColor: [255, 255, 255, 180],
-                lineWidthMinPixels: 1.5,
-                stroked: true,
-                pickable: true,
-                onHover: (info) => onHover(info.object ? { x: info.x, y: info.y, text: 'WARNING: AIS Transponder Dropout Point' } : null),
-            })
-        );
     }
 
     return layers;

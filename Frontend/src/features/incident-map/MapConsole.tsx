@@ -152,26 +152,9 @@ const VESSEL_DENSITY_POINTS = [
     { coordinates: [72.5, 18.5], radius: 14000, value: 0.9 }
 ];
 
-export const MUMBAI_SHIPS = [
-    {
-        shipName: 'MT Pacific Star',
-        mmsi: '244770842',
-        vesselType: 'Crude Oil Tanker',
-        coordinates: [72.48, 18.82] as [number, number],
-        incidentId: 'inc-2026-001',
-        spillAreaKm2: 14.8,
-        totalFineUSD: 198000,
-    },
-    {
-        shipName: 'MV Ocean Chemist',
-        mmsi: '412987654',
-        vesselType: 'Chemical Carrier',
-        coordinates: [72.68, 18.65] as [number, number],
-        incidentId: 'inc-2026-003',
-        spillAreaKm2: 22.5,
-        totalFineUSD: 275000,
-    }
-];
+import { VESSEL_DETECTIONS, VesselDetection } from '@/mocks/vessels';
+
+export const MUMBAI_SHIPS = VESSEL_DETECTIONS;
 
 export const MapConsole: React.FC = () => {
     const mapRef = useRef<MapRef>(null);
@@ -245,6 +228,21 @@ export const MapConsole: React.FC = () => {
             }));
         }
     }, [currentIncident]);
+
+    // Pan to inspected vessel coordinates when selected from sidebar
+    useEffect(() => {
+        if (inspectedVesselMmsi) {
+            const vessel = VESSEL_DETECTIONS.find((v) => v.mmsi === inspectedVesselMmsi);
+            if (vessel) {
+                setViewState((prev) => ({
+                    ...prev,
+                    longitude: vessel.coordinates[0],
+                    latitude: vessel.coordinates[1],
+                    zoom: 11.5,
+                }));
+            }
+        }
+    }, [inspectedVesselMmsi]);
 
     // Construct deck.gl layers
     const layers = [
@@ -352,10 +350,10 @@ export const MapConsole: React.FC = () => {
                 <NavigationControl position="top-right" />
                 <DeckGL viewState={viewState} layers={layers} style={{ pointerEvents: 'none' }} />
 
-                {/* 2 Small Ship Dots in the ocean near Mumbai */}
-                {MUMBAI_SHIPS.map((ship) => {
+                {/* Unified AIS Tracked Vessels (1 Glowing Blue Dot Representation) */}
+                {VESSEL_DETECTIONS.map((ship) => {
                     const isEnforced = fineEnforcedIncidents[ship.incidentId]?.txHash;
-                    const isSelected = selectedIncidentId === ship.incidentId;
+                    const isSelected = inspectedVesselMmsi === ship.mmsi || (selectedIncidentId === ship.incidentId && inspectedVesselMmsi === null);
                     return (
                         <Marker
                             key={ship.mmsi}
@@ -370,29 +368,32 @@ export const MapConsole: React.FC = () => {
                                     setInspectedVesselMmsi(ship.mmsi);
                                     setSelectedShipIncidentId(ship.incidentId);
                                 }}
-                                className="group relative flex items-center justify-center cursor-pointer p-1"
-                                title={`${ship.shipName} (${ship.vesselType}) - Fine: $${(ship.totalFineUSD / 1000).toFixed(0)}k USD`}
+                                className="group relative flex items-center justify-center cursor-pointer p-2"
+                                title={`${ship.shipName} (${ship.vesselType}) - MMSI: ${ship.mmsi}`}
                             >
-                                {/* Subtle small animated radar pulse */}
-                                <span className={`absolute w-4 h-4 rounded-full opacity-70 animate-ping ${
-                                    isEnforced ? 'bg-red-500' : 'bg-cyan-400'
+                                {/* Glowing radar pulse wave */}
+                                <span className={`absolute w-5 h-5 rounded-full opacity-60 animate-ping ${
+                                    isEnforced ? 'bg-red-400' : 'bg-[#00f2fe]'
                                 }`} />
 
-                                {/* Small sleek dot (8px) */}
-                                <span className={`relative block w-2.5 h-2.5 rounded-full border shadow-md transition-transform duration-150 group-hover:scale-150 ${
+                                {/* Single clean sleek blue dot */}
+                                <span className={`relative block rounded-full transition-all duration-200 ${
                                     isEnforced
-                                        ? 'bg-red-500 border-white ring-1 ring-red-400'
+                                        ? 'w-3.5 h-3.5 bg-red-500 border-2 border-white shadow-[0_0_12px_rgba(239,68,68,0.9)]'
                                         : isSelected
-                                            ? 'bg-cyan-300 border-white ring-2 ring-cyan-400'
-                                            : 'bg-cyan-400 border-slate-900 group-hover:bg-white'
+                                            ? 'w-3.5 h-3.5 bg-[#00f2fe] border-2 border-white shadow-[0_0_14px_#00f2fe] ring-4 ring-cyan-400/40 scale-125'
+                                            : 'w-3 h-3 bg-[#00f2fe] border-2 border-[#091522] shadow-[0_0_10px_#00f2fe] group-hover:scale-125'
                                 }`} />
 
                                 {/* Mini hover badge */}
-                                <div className="absolute top-4 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center pointer-events-none z-50 whitespace-nowrap">
-                                    <div className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-[#020617]/95 border border-[#1e293b] text-slate-100 shadow-xl flex items-center space-x-1.5">
-                                        <span className="text-[#38bdf8]">🚢 {ship.shipName}</span>
-                                        <span className="text-slate-500">·</span>
-                                        <span className={isEnforced ? 'text-red-400' : 'text-amber-400'}>
+                                <div className="absolute top-5 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center pointer-events-none z-50 whitespace-nowrap">
+                                    <div className="px-2.5 py-1 rounded-md text-[9px] font-mono font-bold bg-[#040d1a]/95 border border-cyan-500/30 text-slate-100 shadow-xl flex items-center space-x-1.5 backdrop-blur-sm">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#00f2fe]" />
+                                        <span className="text-[#00f2fe] font-semibold">{ship.shipName}</span>
+                                        <span className="text-white/40">·</span>
+                                        <span className="text-white/70">{ship.vesselType}</span>
+                                        <span className="text-white/40">·</span>
+                                        <span className={isEnforced ? 'text-red-400 font-bold' : 'text-amber-400 font-bold'}>
                                             ${(ship.totalFineUSD / 1000).toFixed(0)}k Fine
                                         </span>
                                     </div>
