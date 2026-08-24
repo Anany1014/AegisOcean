@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const { ethers } = require('ethers');
 const IPFSService = require('./services/ipfsService');
@@ -14,6 +15,12 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
+});
+
+// Serve frontend HTML
+app.use(express.static(path.join(__dirname, 'components')));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'components', 'BlockchainEvidencePanel.html'));
 });
 
 const ipfsService = new IPFSService();

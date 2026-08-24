@@ -16,14 +16,8 @@ export const AppRoutes: React.FC = () => {
             <Route path="/" element={<WorkspaceDashboard />} />
             <Route path="/incident/:id" element={<WorkspaceDashboard />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route
-                path="/vessel-dashboard"
-                element={
-                    <ProtectedRoute>
-                        <VesselDashboard />
-                    </ProtectedRoute>
-                }
-            />
+            <Route path="/vessel-dashboard" element={<VesselDashboard />} />
+            <Route path="/blockchain" element={<VesselDashboard />} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     );
