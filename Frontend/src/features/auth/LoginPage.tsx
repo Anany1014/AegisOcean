@@ -30,6 +30,11 @@ export const LoginPage: React.FC = () => {
         }
     };
 
+    const handleQuickAccess = (u = 'admin', p = 'admin') => {
+        login(u, p);
+        navigate('/vessel-dashboard');
+    };
+
     return (
         <div className="h-screen w-screen flex items-center justify-center bg-[var(--abyss)] relative font-sans overflow-hidden">
             {/* Pulsating marine radar grid bg effect */}
@@ -39,7 +44,7 @@ export const LoginPage: React.FC = () => {
 
             <Card className="w-full max-w-md !p-8 border border-[var(--hairline)] bg-[var(--panel)]/70 backdrop-blur-md relative z-10 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
                 {/* Brand Header */}
-                <div className="text-center mb-8">
+                <div className="text-center mb-6">
                     <div className="w-12 h-12 rounded-full border border-[var(--slick-teal)]/30 bg-[var(--slick-teal)]/5 mx-auto mb-4 flex items-center justify-center text-[var(--slick-teal)] relative shadow-[0_0_15px_rgba(0,242,254,0.15)] animate-pulse">
                         <Shield size={22} />
                     </div>
@@ -51,8 +56,43 @@ export const LoginPage: React.FC = () => {
                     </p>
                 </div>
 
+                {/* 1-Click Instant Operator Clearance Button */}
+                <div className="mb-6">
+                    <button
+                        type="button"
+                        onClick={() => handleQuickAccess('operator', 'operator')}
+                        className="w-full py-3 bg-gradient-to-r from-[#00f2fe] to-[#38bdf8] hover:from-[#00f2fe]/90 hover:to-[#38bdf8]/90 text-[var(--abyss)] font-mono font-bold text-xs uppercase tracking-widest rounded-[var(--radius-card)] transition-all cursor-pointer shadow-[0_0_20px_rgba(0,242,254,0.35)] flex items-center justify-center space-x-2"
+                    >
+                        <span>⚡ 1-CLICK INSTANT OPERATOR ACCESS</span>
+                    </button>
+                    <div className="flex items-center justify-between text-[8px] font-mono text-white/40 mt-2 px-1">
+                        <span>PRESET CREDENTIALS:</span>
+                        <div className="space-x-1.5">
+                            <button
+                                type="button"
+                                onClick={() => { setUsername('admin'); setPassword('admin'); }}
+                                className="px-2 py-0.5 rounded bg-white/5 hover:bg-white/15 text-cyan-300 border border-cyan-400/20 cursor-pointer"
+                            >
+                                admin / admin
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setUsername('user'); setPassword('user'); }}
+                                className="px-2 py-0.5 rounded bg-white/5 hover:bg-white/15 text-cyan-300 border border-cyan-400/20 cursor-pointer"
+                            >
+                                user / user
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="relative flex items-center justify-center my-4">
+                    <div className="border-t border-[var(--hairline)] w-full" />
+                    <span className="bg-[var(--panel)] px-2.5 text-[8px] font-mono text-white/30 uppercase tracking-widest absolute">OR MANUAL AUTH</span>
+                </div>
+
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-5 font-mono text-xs">
+                <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
                     {error && (
                         <div className="p-3 border border-[var(--signal-red)]/35 bg-[rgba(225,72,60,0.05)] rounded-[var(--radius-card)] flex items-center space-x-2 text-[var(--signal-red)]">
                             <AlertCircle size={14} className="shrink-0" />
@@ -68,8 +108,8 @@ export const LoginPage: React.FC = () => {
                                 type="text"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                className="w-full bg-transparent py-2.5 text-white outline-none border-none pl-0"
-                                placeholder="Enter operator ID"
+                                className="w-full bg-transparent py-2 text-white outline-none border-none pl-0"
+                                placeholder="e.g. admin or user"
                                 required
                             />
                         </div>
@@ -83,7 +123,7 @@ export const LoginPage: React.FC = () => {
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-transparent py-2.5 text-white outline-none border-none pl-0"
+                                className="w-full bg-transparent py-2 text-white outline-none border-none pl-0"
                                 placeholder="••••••••"
                                 required
                             />
@@ -92,9 +132,9 @@ export const LoginPage: React.FC = () => {
 
                     <button
                         type="submit"
-                        className="w-full py-3 bg-[var(--slick-teal)] hover:bg-[var(--slick-teal)]/90 text-[var(--abyss)] font-bold uppercase rounded-[var(--radius-card)] tracking-widest transition-all cursor-pointer shadow-[0_0_15px_rgba(0,242,254,0.2)] mt-2"
+                        className="w-full py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold uppercase rounded-[var(--radius-card)] tracking-widest transition-all cursor-pointer border border-white/20 mt-1"
                     >
-                        REQUEST CLEARANCE
+                        SIGN IN AS OPERATOR
                     </button>
 
                     <div className="text-center pt-2">
