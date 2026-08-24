@@ -1,0 +1,16 @@
+AIS TRAJECTORY PREDICTOR EVALUATION REPORT
+==========================================
+Checkpoint: ml/results/trajectory_predictor.pt
+Overall Mean Error:    1.007 km
+Overall Median Error:  0.137 km
+Speed (SOG) MAE:       0.401 knots
+
+Step Horizon Breakdown:
+  Step +1: Mean=0.931 km, Median=0.130 km
+  Step +2: Mean=0.898 km, Median=0.142 km
+  Step +3: Mean=0.910 km, Median=0.137 km
+  Step +4: Mean=0.937 km, Median=0.137 km
+  Step +5: Mean=1.003 km, Median=0.137 km
+  Step +6: Mean=1.061 km, Median=0.137 km
+  Step +7: Mean=1.133 km, Median=0.138 km
+  Step +8: Mean=1.182 km, Median=0.139 km

@@ -15,6 +15,9 @@ Usage:
     # Stage 2 only (if sos_encoder.pt already exists)
     python ml/run_pipeline.py --stage2-only
 
+    # Stage 3 only (AIS trajectory predictor)
+    python ml/run_pipeline.py --stage3-only
+
     # Evaluation only
     python ml/run_pipeline.py --eval-only
 
@@ -64,6 +67,12 @@ def run_stage2(cfg: dict) -> None:
     train(cfg)
 
 
+def run_stage3(cfg: dict) -> None:
+    print_banner("STAGE 3 — AIS Vessel Trajectory Predictor Training")
+    from ais_train import train
+    train(cfg)
+
+
 def run_evaluation(cfg: dict) -> None:
     print_banner("EVALUATION — Test Set Metrics & Plots")
     from evaluate import evaluate
@@ -96,6 +105,8 @@ def main() -> None:
                         help="Skip Stage 1 (use ImageNet encoder init or existing sos_encoder.pt)")
     parser.add_argument("--stage2-only",  action="store_true",
                         help="Run Stage 2 fine-tuning only")
+    parser.add_argument("--stage3-only",  action="store_true",
+                        help="Run Stage 3 AIS trajectory training only")
     parser.add_argument("--eval-only",    action="store_true",
                         help="Run evaluation only on existing best_classifier.pt")
     parser.add_argument("--demo-characterise", action="store_true",
@@ -128,6 +139,11 @@ def main() -> None:
                   "     (Train Stage 1 first: python ml/run_pipeline.py)")
         run_stage2(cfg)
         run_evaluation(cfg)
+        return
+
+    # ── Stage 3 only ──
+    if args.stage3_only:
+        run_stage3(cfg)
         return
 
     # ── Full pipeline ──

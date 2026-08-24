@@ -6,6 +6,7 @@ paths:
   sos_data_root: "data/SOS"          # download from Kaggle → place here
   csiro_data_root: "data/2022-12-15_Blondeau-Patissier_David_57430v1/data"
   results_dir: "ml/results"
+  ais_file: "ais-2025-01-01.csv.zst"  # add more .zst files as list for multi-day
 
 # ─── Stage 1: SOS Segmentation Pretraining ───────────────
 stage1:
@@ -113,3 +114,47 @@ stage2:
   # Checkpoint
   stage1_encoder: "ml/results/sos_encoder.pt"
   checkpoint_name: "best_classifier.pt"
+
+# ─── Stage 3: AIS Trajectory Predictor ─────────────────────
+stage3:
+  # ── Data ────────────────────────────────────
+  # Training bbox (Americas AIS file): lon_min, lat_min, lon_max, lat_max
+  # Set to null to use all data in the file
+  train_bbox: null
+  # Indian Ocean inference bbox (used in ais_suspect.py)
+  indian_eez_bbox: [60.0, 5.0, 100.0, 25.0]
+  min_pings: 12             # min pings per MMSI to build a trajectory
+  max_vessels_train: null   # set e.g. 5000 for fast dev runs
+  num_workers: 4
+  batch_size: 128
+
+  # ── Sequence lengths ───────────────────────────
+  t_in:   32                # past pings fed to encoder
+  t_out:  8                 # future pings to predict
+  stride: 4                 # sliding window stride (train)
+
+  # ── Model ──────────────────────────────────
+  input_dim:  9             # feature dimension per timestep
+  output_dim: 3             # lat_delta, lon_delta, sog_norm
+  hidden_dim: 128           # LSTM hidden size (encoder + decoder)
+  n_layers:   2             # LSTM layers
+  dropout:    0.25
+
+  # ── Loss ───────────────────────────────────
+  haversine_weight: 0.5     # weight of Haversine term vs MSE
+
+  # ── Training ─────────────────────────────
+  epochs: 30
+  lr: 3.0e-4
+  weight_decay: 1.0e-5
+  teacher_ratio_start: 0.7  # anneals to 0 at epoch epochs/2
+  early_stop_patience: 8
+
+  # ── Attribution ──────────────────────────
+  attribution_window_hours: 6.0   # ±6h around spill time to search
+  attribution_radius_km:    50.0  # proximity threshold
+  gap_threshold_s:          1800  # 30-min AIS gap = dark-vessel flag
+
+  # ── Checkpoint ──────────────────────────
+  checkpoint_name: "trajectory_predictor.pt"
+

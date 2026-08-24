@@ -23,6 +23,10 @@ Stage 2: CSIRO Dataset → Classifier Fine-tune  (binary chip classification)
 | `stage2_dataset.py` | CSIRO chip dataset loader (stratified split + weighted sampler) |
 | `stage2_model.py` | SAR classifier (transfer from Stage 1 encoder) + Focal Loss |
 | `stage2_train.py` | Stage 2 fine-tuning loop (warmup → full fine-tune) |
+| `ais_dataset.py` | Streams `.zst` AIS data into sliding-window trajectory sequences |
+| `ais_model.py` | Bidirectional LSTM Seq2Seq model with Bahdanau attention + Haversine loss |
+| `ais_train.py` | Stage 3 trajectory predictor training loop with teacher forcing |
+| `ais_suspect.py` | Vessel attribution engine linking slick events (from CSIRO metadata) to suspects |
 | `evaluate.py` | Test metrics, ROC/PR curves, confusion matrix, optimal threshold |
 | `characterise.py` | Slick geometry + age + look-alike confidence (no ML required) |
 | `run_pipeline.py` | End-to-end orchestrator |
@@ -53,6 +57,18 @@ python ml/run_pipeline.py --skip-stage1
 
 # ── Stage 2 only (Stage 1 already trained) ─────────────────────
 python ml/run_pipeline.py --stage2-only
+
+# ── Stage 3 only (Train AIS vessel trajectory predictor) ───────
+python ml/ais_train.py
+# or
+python ml/run_pipeline.py --stage3-only
+
+# ── Vessel Attribution (Run suspect scoring against a spill) ──
+python ml/ais_suspect.py \
+  --ais ais-2025-01-01.csv.zst \
+  --spill-lat 18.5 --spill-lon 72.8 \
+  --spill-time "2025-01-01 12:00:00" \
+  --bbox 60 5 100 25
 
 # ── Evaluation only ─────────────────────────────────────────────
 python ml/run_pipeline.py --eval-only
