@@ -48,15 +48,17 @@ function getBackendContract() {
  */
 app.get('/api/blockchain/incident/:id', async (req, res) => {
   try {
-    const incidentId = parseInt(req.params.id, 10);
+    const rawId = req.params.id;
     const contract = getBackendContract();
 
     if (contract) {
-      const data = await contract.getIncident(incidentId);
+      const numericId = parseInt(String(rawId).replace(/\D/g, ''), 10) || 1;
+      const data = await contract.getIncident(numericId);
       const statuses = ["Anchored", "Enforced", "Settled", "Released"];
       return res.json({
         success: true,
-        incidentId: Number(data.incidentId),
+        incidentId: rawId,
+        numericIncidentId: Number(data.incidentId),
         suspectMMSI: Number(data.suspectMMSI),
         ipfsCID: data.ipfsCID,
         evidenceHash: data.evidenceHash,
@@ -69,14 +71,14 @@ app.get('/api/blockchain/incident/:id', async (req, res) => {
       });
     } else {
       // Mock mode fallback for local dashboard display
-      const stored = mockIncidentStore.get(incidentId) || {
-        incidentId: incidentId,
+      const stored = mockIncidentStore.get(rawId) || mockIncidentStore.get(String(rawId)) || {
+        incidentId: rawId,
         suspectMMSI: 367123456,
-        spillAreaSqKm: 4,
+        spillAreaSqKm: 14.8,
         attributionScore: 92,
         ipfsCID: "QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco",
         evidenceHash: "0x7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069",
-        fineAmountUSD: 30000,
+        fineAmountUSD: 198000,
         enforcementStatus: "Anchored",
         blockchainStatus: "Anchored On-Chain",
         transactionHash: "0x9f83a42e1b8c7d6e5a4f3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e"
@@ -102,10 +104,12 @@ app.post('/api/blockchain/enforce', async (req, res) => {
     const contract = getBackendContract();
 
     if (contract) {
-      const tx = await contract.enforceFine(incidentId);
+      const numericId = parseInt(String(incidentId).replace(/\D/g, ''), 10) || 1;
+      const tx = await contract.enforceFine(numericId);
       const receipt = await tx.wait();
       return res.json({
         success: true,
+        incidentId: incidentId,
         status: "Confirmed",
         transactionHash: receipt.hash,
         blockNumber: receipt.blockNumber,
@@ -113,12 +117,23 @@ app.post('/api/blockchain/enforce', async (req, res) => {
         clearanceRevoked: true
       });
     } else {
-      const stored = mockIncidentStore.get(incidentId) || { incidentId };
+      const stored = mockIncidentStore.get(incidentId) || mockIncidentStore.get(String(incidentId)) || {
+        incidentId: incidentId,
+        suspectMMSI: 367123456,
+        spillAreaSqKm: 14.8,
+        attributionScore: 92,
+        ipfsCID: "QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco",
+        evidenceHash: "0x7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069",
+        fineAmountUSD: 198000,
+        blockchainStatus: "Anchored On-Chain"
+      };
       stored.enforcementStatus = "Enforced";
       mockIncidentStore.set(incidentId, stored);
+      mockIncidentStore.set(String(incidentId), stored);
 
       return res.json({
         success: true,
+        incidentId: incidentId,
         status: "Confirmed",
         transactionHash: "0x" + Math.random().toString(16).substring(2, 42),
         blockNumber: 15489021,
@@ -133,6 +148,120 @@ app.post('/api/blockchain/enforce', async (req, res) => {
       error: error.reason || error.message
     });
   }
+});
+
+/**
+ * POST /api/ml/analyze-and-anchor
+ * Invokes Python ML slick characterisation engine, pins results to IPFS, and anchors fine to blockchain.
+ */
+app.post('/api/ml/analyze-and-anchor', async (req, res) => {
+  const { suspectMMSI, polygon, windSpeedMs, backscatterMean } = req.body;
+
+  if (!polygon || !Array.isArray(polygon) || polygon.length < 3) {
+    return res.status(400).json({ success: false, error: "polygon coordinates array is required (min 3 points)" });
+  }
+
+  const mmsiNum = Number(suspectMMSI) || 0;
+  const windNum = Number(windSpeedMs) || 5.0;
+  const backscatterNum = backscatterMean !== undefined ? Number(backscatterMean) : -14.2;
+
+  const { spawn } = require('child_process');
+  const path = require('path');
+  const scriptPath = path.resolve(__dirname, '../../ml/characterise.py');
+
+  let pythonProcess;
+  try {
+    pythonProcess = spawn('python', [scriptPath, '--json']);
+  } catch (err) {
+    return res.status(500).json({ success: false, error: `Failed to spawn Python process: ${err.message}` });
+  }
+
+  let stdoutData = "";
+  let stderrData = "";
+
+  pythonProcess.stdout.on('data', (data) => {
+    stdoutData += data.toString();
+  });
+
+  pythonProcess.stderr.on('data', (data) => {
+    stderrData += data.toString();
+  });
+
+  pythonProcess.on('close', async (code) => {
+    if (code !== 0) {
+      return res.status(500).json({
+        success: false,
+        error: `Python process exited with code ${code}`,
+        details: stderrData
+      });
+    }
+
+    try {
+      const mlResult = JSON.parse(stdoutData.trim());
+
+      const aiDetectionResult = {
+        suspectMMSI: mmsiNum,
+        spillAreaSqKm: mlResult.areaKm2,
+        attributionScore: mlResult.windArtifactConfidence > 0.6 ? 10 : 85,
+        satelliteImage: "data:image/tiff;base64,SUZEOQEAAAAAAQAB...",
+        spillGeoJSON: {
+          type: "Feature",
+          properties: mlResult,
+          geometry: {
+            type: "Polygon",
+            coordinates: [polygon]
+          }
+        },
+        driftData: { windSpeed: windNum, direction: 220 },
+        aisData: { targetMMSI: mmsiNum },
+        pasReport: { confidence: Math.round((1 - mlResult.windArtifactConfidence) * 100) }
+      };
+
+      const contract = getBackendContract();
+      const ipfsService = new IPFSService();
+      const IncidentService = require('./services/incidentService');
+      const AIPipelineAdapter = require('./services/aiPipelineAdapter');
+
+      const incidentService = new IncidentService(process.env.CONTRACT_ADDRESS, contract, ipfsService);
+      let anchorResult;
+
+      if (contract) {
+        const adapter = new AIPipelineAdapter(incidentService);
+        anchorResult = await adapter.onDetectionCompleted(aiDetectionResult);
+      } else {
+        const calculatedFine = 50000 + Math.round(mlResult.areaKm2) * 10000;
+        const mockId = "inc-" + Date.now().toString().substring(8);
+        anchorResult = {
+          success: true,
+          incidentId: mockId,
+          suspectMMSI: mmsiNum,
+          spillAreaSqKm: Math.round(mlResult.areaKm2),
+          attributionScore: aiDetectionResult.attributionScore,
+          fineAmountUSD: calculatedFine,
+          ipfsCID: "Qm" + Math.random().toString(36).substring(2, 48),
+          evidenceHash: "0x" + Math.random().toString(16).substring(2, 66),
+          transactionHash: "0x" + Math.random().toString(16).substring(2, 66),
+          blockNumber: 15489021 + Math.floor(Math.random() * 1000),
+          timestamp: new Date().toISOString()
+        };
+      }
+
+      return res.json({
+        success: true,
+        mlResult: { ...mlResult, attributionScore: aiDetectionResult.attributionScore },
+        blockchainReceipt: anchorResult
+      });
+    } catch (parseErr) {
+      return res.status(500).json({
+        success: false,
+        error: `Failed to parse Python output: ${parseErr.message}`,
+        raw: stdoutData
+      });
+    }
+  });
+
+  pythonProcess.stdin.write(JSON.stringify({ polygon, wind_speed_ms: windNum, backscatter_mean: backscatterNum }));
+  pythonProcess.stdin.end();
 });
 
 /**

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { apiClient } from '@/lib/apiClient';
+import { Incident } from '@/types/contract';
 
 export interface EnforcedFineRecord {
     txHash: string;
@@ -27,6 +28,8 @@ interface UiState {
     layersTab: 'layers' | 'basemap';
     currentBasemap: 'esri-ocean' | 'esri-topo' | 'esri-dark';
     fineEnforcedIncidents: Record<string, EnforcedFineRecord>;
+    customIncidents: Incident[];
+    addCustomIncident: (incident: Incident) => void;
     setMockMode: (mode: boolean) => void;
     setSelectedIncidentId: (id: string | null) => void;
     setInspectedVesselMmsi: (mmsi: string | null) => void;
@@ -63,6 +66,8 @@ export const useUiStore = create<UiState>((set) => ({
     layersTab: 'layers',
     currentBasemap: 'esri-dark',
     fineEnforcedIncidents: {},
+    customIncidents: [],
+    addCustomIncident: (incident) => set((state) => ({ customIncidents: [...state.customIncidents, incident] })),
     setMockMode: (isMockMode) => set({ isMockMode }),
     setSelectedIncidentId: (selectedIncidentId) =>
         set({ selectedIncidentId, inspectedVesselMmsi: null, isDossierOpen: false }),

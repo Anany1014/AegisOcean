@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useUiStore } from '@/stores/useUiStore';
 
 import { TriageSidebar } from '../triage-sidebar/TriageSidebar';
@@ -24,6 +24,7 @@ const FigmaStar: React.FC<{ className?: string; size?: number }> = ({ className 
 
 export const WorkspaceDashboard: React.FC = () => {
     const { id } = useParams<{ id?: string }>();
+    const navigate = useNavigate();
     const { isMockMode, setMockMode, selectedIncidentId, setSelectedIncidentId } = useUiStore();
 
     // Sync route param with Zustand UI state
@@ -98,10 +99,10 @@ export const WorkspaceDashboard: React.FC = () => {
                     </div>
 
                     <button
-                        onClick={() => useUiStore.getState().logout()}
-                        className="px-3 py-1.5 text-[10px] font-mono tracking-widest text-[#ff5a50] border border-[#ff5a50]/20 hover:border-[#ff5a50]/60 hover:bg-[#ff5a50]/10 rounded-[var(--radius-chip)] transition-all select-none cursor-pointer uppercase"
+                        onClick={() => navigate('/vessel-dashboard')}
+                        className="px-5 py-2.5 text-xs font-mono font-bold tracking-widest text-[var(--abyss)] bg-[var(--slick-teal)] hover:bg-[var(--slick-teal)]/90 rounded-[var(--radius-card)] transition-all select-none cursor-pointer uppercase shadow-[0_0_15px_rgba(0,242,254,0.35)] animate-pulse"
                     >
-                        LOGOUT
+                        VESSEL PORTAL
                     </button>
                 </div>
             </header>

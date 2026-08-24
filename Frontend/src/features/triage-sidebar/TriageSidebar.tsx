@@ -5,7 +5,209 @@ import { useUiStore } from '@/stores/useUiStore';
 import { IncidentListItem } from './IncidentListItem';
 import { Card } from '@/ui/Card';
 import { Badge } from '@/ui/Badge';
-import { Filter, ArrowUpDown, RefreshCw, ChevronDown, ChevronRight, Layers, MapPin, Eye } from 'lucide-react';
+import { Filter, ArrowUpDown, RefreshCw, ChevronDown, ChevronRight, Layers, MapPin, Eye, Compass } from 'lucide-react';
+
+const REGION_PRESETS = [
+    {
+        name: 'Mumbai Offings',
+        polygon: [
+            [72.52, 18.90],
+            [72.58, 18.94],
+            [72.64, 18.91],
+            [72.60, 18.86],
+            [72.52, 18.90]
+        ]
+    },
+    {
+        name: 'Chennai Anchorage',
+        polygon: [
+            [80.32, 13.12],
+            [80.38, 13.15],
+            [80.41, 13.09],
+            [80.35, 13.06],
+            [80.32, 13.12]
+        ]
+    },
+    {
+        name: 'Gulf of Khambhat',
+        polygon: [
+            [72.22, 21.05],
+            [72.29, 21.11],
+            [72.34, 21.06],
+            [72.27, 21.00],
+            [72.22, 21.05]
+        ]
+    }
+];
+
+const AttestationForm: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
+    const { addCustomIncident, setSelectedIncidentId } = useUiStore();
+    const [selectedRegionIdx, setSelectedRegionIdx] = useState(0);
+    const [mmsi, setMmsi] = useState('367123456');
+    const [windSpeed, setWindSpeed] = useState(4.5);
+    const [backscatter, setBackscatter] = useState(-14.2);
+    const [progressStep, setProgressStep] = useState(0);
+    const [statusText, setStatusText] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleAttest = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        try {
+            setProgressStep(1);
+            setStatusText('Executing SAR U-Net Segmentation & Look-alike heuristics...');
+            await new Promise(r => setTimeout(r, 1200));
+
+            setProgressStep(2);
+            setStatusText('Generating decentralized IPFS evidence bundle...');
+            await new Promise(r => setTimeout(r, 1200));
+
+            setProgressStep(3);
+            setStatusText('Broadcasting statutory citation of fine to Polygon ledger...');
+
+            const payload = {
+                suspectMMSI: Number(mmsi),
+                polygon: REGION_PRESETS[selectedRegionIdx].polygon,
+                windSpeedMs: Number(windSpeed),
+                backscatterMean: Number(backscatter)
+            };
+
+            const res = await apiClient.analyzeAndAnchorIncident(payload);
+
+            if (res.success) {
+                const newIncident = {
+                    id: res.blockchainReceipt.incidentId.toString(),
+                    detectedAt: res.blockchainReceipt.timestamp,
+                    polygon: {
+                        type: 'Polygon' as const,
+                        coordinates: [payload.polygon]
+                    },
+                    areaKm2: res.mlResult.areaKm2,
+                    perimeterToAreaRatio: res.mlResult.perimeterToAreaRatio,
+                    windArtifactConfidence: res.mlResult.windArtifactConfidence,
+                    status: 'unreviewed' as const
+                };
+
+                addCustomIncident(newIncident);
+                setSelectedIncidentId(newIncident.id);
+
+                useUiStore.setState((state) => ({
+                    fineEnforcedIncidents: {
+                        ...state.fineEnforcedIncidents,
+                        [newIncident.id]: {
+                            txHash: res.blockchainReceipt.transactionHash,
+                            ipfsCid: res.blockchainReceipt.ipfsCID,
+                            blockNumber: res.blockchainReceipt.blockNumber,
+                            timestamp: res.blockchainReceipt.timestamp,
+                            fineAmount: res.blockchainReceipt.fineAmountUSD,
+                            vesselMmsi: mmsi
+                        }
+                    }
+                }));
+
+                setStatusText('Decentralized Attestation Anchored Successfully!');
+                setProgressStep(4);
+                await new Promise(r => setTimeout(r, 1000));
+                onComplete();
+            }
+        } catch (err: any) {
+            console.error(err);
+            setStatusText(`Attestation Failed: ${err.message}`);
+            setProgressStep(-1);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <form onSubmit={handleAttest} className="space-y-4 font-mono text-[9px] text-[var(--foam-dim)] border border-[var(--hairline)] rounded-[var(--radius-card)] bg-[var(--abyss)] p-3">
+            <div className="space-y-1">
+                <label className="eyebrow block">Select SAR Coverage Region</label>
+                <select
+                    value={selectedRegionIdx}
+                    onChange={(e) => setSelectedRegionIdx(Number(e.target.value))}
+                    disabled={isSubmitting}
+                    className="w-full bg-[var(--panel-raised)] border border-[var(--hairline)] rounded-[var(--radius-chip)] p-1.5 text-white outline-none focus:border-[var(--slick-teal)]"
+                >
+                    {REGION_PRESETS.map((preset, idx) => (
+                        <option key={preset.name} value={idx} className="bg-[var(--panel)]">
+                            {preset.name}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            <div className="space-y-1">
+                <label className="eyebrow block">Input Suspect MMSI</label>
+                <input
+                    type="text"
+                    value={mmsi}
+                    onChange={(e) => setMmsi(e.target.value)}
+                    disabled={isSubmitting}
+                    className="w-full bg-[var(--panel-raised)] border border-[var(--hairline)] rounded-[var(--radius-chip)] p-1.5 text-white outline-none focus:border-[var(--slick-teal)]"
+                    placeholder="e.g. 367123456"
+                    required
+                />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                    <label className="eyebrow block">Wind Speed (m/s)</label>
+                    <input
+                        type="number"
+                        step="0.1"
+                        value={windSpeed}
+                        onChange={(e) => setWindSpeed(Number(e.target.value))}
+                        disabled={isSubmitting}
+                        className="w-full bg-[var(--panel-raised)] border border-[var(--hairline)] rounded-[var(--radius-chip)] p-1.5 text-white outline-none focus:border-[var(--slick-teal)]"
+                    />
+                </div>
+                <div className="space-y-1">
+                    <label className="eyebrow block">Backscatter (dB)</label>
+                    <input
+                        type="number"
+                        step="0.1"
+                        value={backscatter}
+                        onChange={(e) => setBackscatter(Number(e.target.value))}
+                        disabled={isSubmitting}
+                        className="w-full bg-[var(--panel-raised)] border border-[var(--hairline)] rounded-[var(--radius-chip)] p-1.5 text-white outline-none focus:border-[var(--slick-teal)]"
+                    />
+                </div>
+            </div>
+
+            {isSubmitting || progressStep > 0 ? (
+                <div className="p-2.5 bg-[var(--panel)] border border-[var(--hairline)] rounded-[var(--radius-card)] space-y-2 mt-2">
+                    <span className="eyebrow block text-[var(--slick-teal)]">PIPELINE RUNNING</span>
+                    <div className="space-y-1 text-[8px] tracking-wide">
+                        <div className="flex justify-between items-center">
+                            <span>1. ML Segmentation</span>
+                            <span className={progressStep >= 1 ? "text-[var(--slick-teal)] font-bold" : ""}>{progressStep >= 2 ? "✓ DONE" : progressStep === 1 ? "RUNNING" : "PENDING"}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span>2. IPFS Pinned Proofs</span>
+                            <span className={progressStep >= 2 ? "text-[var(--slick-teal)] font-bold" : ""}>{progressStep >= 3 ? "✓ DONE" : progressStep === 2 ? "RUNNING" : "PENDING"}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span>3. Smart Contract Anchor</span>
+                            <span className={progressStep >= 3 ? "text-[var(--slick-teal)] font-bold" : ""}>{progressStep >= 4 ? "✓ DONE" : progressStep === 3 ? "RUNNING" : "PENDING"}</span>
+                        </div>
+                    </div>
+                    <p className={`text-[8px] ${progressStep === -1 ? 'text-[var(--signal-red)]' : 'text-white/80'} animate-pulse`}>
+                        {statusText}
+                    </p>
+                </div>
+            ) : (
+                <button
+                    type="submit"
+                    className="w-full py-1.5 bg-[var(--slick-teal)] text-[var(--abyss)] hover:bg-[var(--slick-teal)]/90 text-[10px] font-mono font-bold uppercase rounded-[var(--radius-chip)] transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-[0_0_8px_rgba(0,242,254,0.15)] mt-2"
+                >
+                    <Compass size={11} className="animate-spin" style={{ animationDuration: '3s' }} />
+                    <span>RUN ML & WEB3 ANCHOR</span>
+                </button>
+            )}
+        </form>
+    );
+};
 
 export const TriageSidebar: React.FC = () => {
     const {
@@ -23,6 +225,7 @@ export const TriageSidebar: React.FC = () => {
     const [filterStatus, setFilterStatus] = useState<'all' | 'unreviewed' | 'confirmed'>('all');
     const [sortBy, setSortBy] = useState<'date' | 'area'>('date');
     const [isLegendOpen, setIsLegendOpen] = useState(false);
+    const [isAttesting, setIsAttesting] = useState(false);
 
     const { data: incidents, isLoading, isError, refetch } = useQuery({
         queryKey: ['incidents', isMockMode],
@@ -90,6 +293,16 @@ export const TriageSidebar: React.FC = () => {
             {activeTab === 'detections' ? (
                 /* DETECTIONS LIST TAB */
                 <>
+                    {/* Form Toggle Button */}
+                    <div className="p-2 border-b border-[var(--hairline)] bg-[var(--panel-raised)]">
+                        <button
+                            onClick={() => setIsAttesting(!isAttesting)}
+                            className="w-full py-1.5 bg-[var(--slick-teal)] text-[var(--abyss)] hover:bg-[var(--slick-teal)]/80 text-[10px] font-mono tracking-widest font-bold uppercase rounded-[var(--radius-chip)] transition-all flex items-center justify-center space-x-1 cursor-pointer"
+                        >
+                            <span>{isAttesting ? "← BACK TO LIST" : "+ ATTEST NEW SAR DETECT"}</span>
+                        </button>
+                    </div>
+
                     {/* Sorting & Filter controls */}
                     <div className="p-3 bg-[var(--abyss)] border-b border-[var(--hairline)] flex flex-col space-y-2">
                         <div className="flex items-center justify-between text-[10px] font-mono text-[var(--foam-dim)]">
@@ -117,7 +330,9 @@ export const TriageSidebar: React.FC = () => {
 
                     {/* Main List */}
                     <div className="flex-1 overflow-y-auto px-4 py-3">
-                        {isLoading ? (
+                        {isAttesting ? (
+                            <AttestationForm onComplete={() => { setIsAttesting(false); refetch(); }} />
+                        ) : isLoading ? (
                             /* Sonar concentric pulsing loading arcs */
                             <div className="h-40 flex flex-col items-center justify-center space-y-4">
                                 <div className="relative w-12 h-12 flex items-center justify-center">

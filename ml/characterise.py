@@ -242,10 +242,34 @@ def characterise_slick(
     }
 
 
-# ── Smoke test ────────────────────────────────────────────────────────────────
+# ── Smoke test and CLI JSON entrypoint ────────────────────────────────────────
 
 if __name__ == "__main__":
-    # Example: incident inc-2026-003 from mock data
+    import sys
+    import json
+    
+    if len(sys.argv) > 1 and sys.argv[1] == "--json":
+        try:
+            # Read from stdin
+            input_data = json.load(sys.stdin)
+            polygon = input_data.get("polygon")
+            wind_speed = float(input_data.get("wind_speed_ms", 5.0))
+            backscatter = input_data.get("backscatter_mean")
+            if backscatter is not None:
+                backscatter = float(backscatter)
+            
+            res = characterise_slick(
+                polygon_coords=polygon,
+                wind_speed_ms=wind_speed,
+                backscatter_mean=backscatter
+            )
+            print(json.dumps(res))
+            sys.exit(0)
+        except Exception as e:
+            print(json.dumps({"error": str(e)}), file=sys.stderr)
+            sys.exit(1)
+            
+    # Default smoke test if no arguments are passed
     polygon = [
         [72.82, 19.10], [72.85, 19.13], [72.88, 19.11],
         [72.86, 19.08], [72.83, 19.07], [72.82, 19.10],

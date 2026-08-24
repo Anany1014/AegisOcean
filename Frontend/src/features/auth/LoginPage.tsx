@@ -1,37 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUiStore } from '@/stores/useUiStore';
-import { Button } from '@/ui/Button';
+import { Shield, Lock, User, AlertCircle } from 'lucide-react';
 import { Card } from '@/ui/Card';
-import { AlertCircle, Lock, User } from 'lucide-react';
-
-const FigmaStar: React.FC<{ className?: string; size?: number }> = ({ className = '', size = 20 }) => (
-    <svg width={size} height={size} viewBox="0 0 34 33" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-        <path d="M16.7417 0L18.9626 10.8982L27.6691 3.97724L22.3652 13.7533L33.4834 14.048L23.1365 18.1276L31.4641 25.5L20.9156 21.9743L22.556 32.9748L16.7417 23.4934L10.9274 32.9748L12.5678 21.9743L2.01927 25.5L10.3469 18.1276L-3.24249e-05 14.048L11.1182 13.7533L5.81431 3.97724L14.5208 10.8982L16.7417 0Z" fill="url(#login-star-grad)" />
-        <defs>
-            <linearGradient id="login-star-grad" x1="-1.59163" y1="-2.76742" x2="36.5955" y2="-1.98964" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#C6F1F7" />
-                <stop offset="0.364583" stopColor="#F983E9" />
-                <stop offset="0.739583" stopColor="#B877FF" />
-                <stop offset="1" stopColor="#C2E9CD" />
-            </linearGradient>
-        </defs>
-    </svg>
-);
 
 export const LoginPage: React.FC = () => {
     const navigate = useNavigate();
-    const login = useUiStore((state) => state.login);
-    const isAuthenticated = useUiStore((state) => state.isAuthenticated);
-
+    const { login, isAuthenticated } = useUiStore();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
 
-    // If already logged in, redirect to dashboard
+    // If already authenticated, redirect immediately
     React.useEffect(() => {
         if (isAuthenticated) {
-            navigate('/', { replace: true });
+            navigate('/vessel-dashboard');
         }
     }, [isAuthenticated, navigate]);
 
@@ -39,114 +22,92 @@ export const LoginPage: React.FC = () => {
         e.preventDefault();
         setError(null);
 
-        if (!username || !password) {
-            setError('Please supply both username and password.');
-            return;
-        }
-
         const success = login(username, password);
         if (success) {
-            navigate('/', { replace: true });
+            navigate('/vessel-dashboard');
         } else {
-            setError('Could not verify credentials. Verify correct capitalization.');
+            setError('ACCESS DENIED: INVALID OPERATOR CREDENTIALS');
         }
     };
 
     return (
-        <div className="h-screen w-screen flex flex-col items-center justify-center bg-[var(--abyss)] relative overflow-hidden select-none">
-            {/* Ambient Background Glows */}
-            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_center,rgba(184,119,255,0.06),transparent_60%)]" />
-            <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-[#B877FF]/8 rounded-full blur-[140px] animate-pulse" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-[#F983E9]/8 rounded-full blur-[140px] animate-pulse" />
+        <div className="h-screen w-screen flex items-center justify-center bg-[var(--abyss)] relative font-sans overflow-hidden">
+            {/* Pulsating marine radar grid bg effect */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,242,254,0.05),transparent_60%)] pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-[var(--slick-teal)]/5 rounded-full pointer-events-none animate-ping opacity-25" style={{ animationDuration: '8s' }} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] border border-[var(--slick-teal)]/5 rounded-full pointer-events-none animate-ping opacity-55" style={{ animationDuration: '5s' }} />
 
-            <div className="w-[520px] z-10 p-4 space-y-6">
-                <Card className="border border-white/20 p-12 shadow-[var(--shadow-panel)] relative overflow-hidden">
-                    {/* Symmetrical Top Brand Line indicator card */}
-                    <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#C6F1F7] via-[#F983E9] to-[#B877FF]" />
-
-                    {/* Logo/Branding Header */}
-                    <div className="flex items-center justify-between mb-12">
-                        <div>
-                            <span className="text-xs font-mono text-white/40 tracking-[0.3em] block uppercase mb-3">
-                                Secured Intelligence Portal
-                            </span>
-                            <h1 className="font-display font-black text-3xl tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-[#C6F1F7] via-[#F983E9] to-[#B877FF]">
-                                AEGISOCEAN
-                            </h1>
-                        </div>
-                        <FigmaStar className="animate-[spin_24s_linear_infinite]" size={38} />
+            <Card className="w-full max-w-md !p-8 border border-[var(--hairline)] bg-[var(--panel)]/70 backdrop-blur-md relative z-10 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+                {/* Brand Header */}
+                <div className="text-center mb-8">
+                    <div className="w-12 h-12 rounded-full border border-[var(--slick-teal)]/30 bg-[var(--slick-teal)]/5 mx-auto mb-4 flex items-center justify-center text-[var(--slick-teal)] relative shadow-[0_0_15px_rgba(0,242,254,0.15)] animate-pulse">
+                        <Shield size={22} />
                     </div>
-
-                    <form onSubmit={handleSubmit} className="space-y-8">
-                        {error && (
-                            <div className="p-4 bg-[var(--signal-red)]/10 border border-[var(--signal-red)]/40 text-[var(--signal-red)] text-xs font-mono rounded-[var(--radius-card)] flex items-start space-x-2 animate-shake">
-                                <AlertCircle size={15} className="mt-0.5 shrink-0" />
-                                <span>{error}</span>
-                            </div>
-                        )}
-
-                        {/* Username Input box - Doubled size, padded to prevent icon collision */}
-                        <div className="space-y-3.5">
-                            <label className="text-sm font-semibold font-mono text-white/60 tracking-wider uppercase block">
-                                Username
-                            </label>
-                            <div className="relative">
-                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-white/25">
-                                    <User size={18} />
-                                </span>
-                                <input
-                                    type="text"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    placeholder="Enter username"
-                                    className="w-full h-18 bg-white/5 border border-white/10 rounded-[var(--radius-card)] pr-5 text-sm text-white placeholder-white/20 focus:border-white/30 focus:bg-white/8 focus:outline-none transition-all font-mono"
-                                    style={{ paddingLeft: '4.5rem' }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Password Input box - Doubled size, padded to prevent icon collision */}
-                        <div className="space-y-3.5">
-                            <label className="text-sm font-semibold font-mono text-white/60 tracking-wider uppercase block">
-                                Password
-                            </label>
-                            <div className="relative">
-                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-white/25">
-                                    <Lock size={18} />
-                                </span>
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="Enter passcode"
-                                    className="w-full h-18 bg-white/5 border border-white/10 rounded-[var(--radius-card)] pr-5 text-sm text-white placeholder-white/20 focus:border-white/30 focus:bg-white/8 focus:outline-none transition-all font-mono"
-                                    style={{ paddingLeft: '4.5rem' }}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="pt-4">
-                            <Button type="submit" variant="primary" className="w-full h-16 text-sm font-bold uppercase tracking-wider" size="md">
-                                Establish Connection
-                            </Button>
-                        </div>
-                    </form>
-
-                    {/* Symmetrical footer detail bar */}
-                    <div className="mt-10 pt-6 border-t border-white/5 flex items-center justify-between text-[9px] font-mono text-white/30 tracking-wider uppercase">
-                        <span>SYS STAT: ACTIVE</span>
-                        <span>DEV GATEWAY</span>
-                    </div>
-                </Card>
-
-                {/* Separate credentials helper card below the form box */}
-                <div className="p-4 bg-[var(--panel)] border border-white/10 rounded-[var(--radius-card)] text-center text-xs font-mono tracking-wide text-white/60 animate-fade-in shadow-[var(--shadow-panel)]">
-                    <span className="text-[9px] eyebrow block mb-1">System Authorization Credentials</span>
-                    <span className="text-white/80">Username:</span> <span className="text-[var(--slick-teal)] font-bold">admin</span>
-                    <span className="text-white/30 mx-3">|</span>
-                    <span className="text-white/80">Password:</span> <span className="text-[var(--slick-teal)] font-bold">admin</span>
+                    <h2 className="font-display font-bold text-base uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-[#C6F1F7] via-[#F983E9] to-[#B877FF]">
+                        Secured Vessel Portal
+                    </h2>
+                    <p className="text-[10px] font-mono text-white/40 mt-1 uppercase tracking-widest">
+                        Statutory Enforcement & Clearance Console
+                    </p>
                 </div>
-            </div>
+
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="space-y-5 font-mono text-xs">
+                    {error && (
+                        <div className="p-3 border border-[var(--signal-red)]/35 bg-[rgba(225,72,60,0.05)] rounded-[var(--radius-card)] flex items-center space-x-2 text-[var(--signal-red)]">
+                            <AlertCircle size={14} className="shrink-0" />
+                            <span className="font-bold text-[9px] uppercase tracking-wider">{error}</span>
+                        </div>
+                    )}
+
+                    <div className="space-y-1.5">
+                        <label className="text-[9px] eyebrow uppercase tracking-wider text-white/50 block">Operator Username</label>
+                        <div className="flex items-center bg-[var(--abyss)] border border-[var(--hairline)] rounded-[var(--radius-card)] px-3 focus-within:border-[var(--slick-teal)] transition-all">
+                            <User size={13} className="text-white/35 mr-3 shrink-0" />
+                            <input
+                                type="text"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                className="w-full bg-transparent py-2.5 text-white outline-none border-none pl-0"
+                                placeholder="Enter operator ID"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="text-[9px] eyebrow uppercase tracking-wider text-white/50 block">Security Keycode</label>
+                        <div className="flex items-center bg-[var(--abyss)] border border-[var(--hairline)] rounded-[var(--radius-card)] px-3 focus-within:border-[var(--slick-teal)] transition-all">
+                            <Lock size={13} className="text-white/35 mr-3 shrink-0" />
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full bg-transparent py-2.5 text-white outline-none border-none pl-0"
+                                placeholder="••••••••"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="w-full py-3 bg-[var(--slick-teal)] hover:bg-[var(--slick-teal)]/90 text-[var(--abyss)] font-bold uppercase rounded-[var(--radius-card)] tracking-widest transition-all cursor-pointer shadow-[0_0_15px_rgba(0,242,254,0.2)] mt-2"
+                    >
+                        REQUEST CLEARANCE
+                    </button>
+
+                    <div className="text-center pt-2">
+                        <button
+                            type="button"
+                            onClick={() => navigate('/')}
+                            className="text-[9px] text-white/45 hover:text-white transition-all uppercase tracking-widest cursor-pointer"
+                        >
+                            ← Return to Command Center
+                        </button>
+                    </div>
+                </form>
+            </Card>
         </div>
     );
 };
