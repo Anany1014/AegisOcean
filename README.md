@@ -42,35 +42,35 @@ graph TD
     classDef ledger fill:#1e1b4b,stroke:#8b5cf6,stroke-width:2px,color:#fff;
     classDef ui fill:#312e81,stroke:#6366f1,stroke-width:2px,color:#fff;
 
-    SAR["📡 Sentinel-1 SAR GRD Imagery"]:::datasource
-    MetOcean["🌊 Copernicus & ERA5 MetOcean Data"]:::datasource
-    AIS["🛳️ MarineCadastre AIS Stream"]:::datasource
+    SAR["📡 Sentinel-1 SAR GRD Imagery"]
+    MetOcean["🌊 Copernicus & ERA5 MetOcean Data"]
+    AIS["🛳️ MarineCadastre AIS Stream"]
 
     subgraph MLEngine["🧠 AI & Remote Sensing Segment"]
-        Seg["efficientnet-b2 UNet / SegFormer"]:::engine
-        GLCM["Calm Sea Look-alike Filter (GLCM)"]:::engine
+        Seg["efficientnet-b2 UNet / SegFormer"]
+        GLCM["Calm Sea Look-alike Filter (GLCM)"]
     end
 
     subgraph HydroEngine["🌀 Hydrodynamic Drift Engine"]
-        Lagrangian["Backward Lagrangian Drift Hindcasting"]:::engine
-        Forecast["Forward Trajectory Forecasting (48h)"]:::engine
+        Lagrangian["Backward Lagrangian Drift Hindcasting"]
+        Forecast["Forward Trajectory Forecasting (48h)"]
     end
 
     subgraph AISEngine["🕵️ AIS Attribution Engine"]
-        RTree["Spatio-Temporal R-Tree Indexing"]:::engine
-        DeadReckon["Bi-LSTM AIS Dead-Reckoning"]:::engine
-        Attribution["Polluter Attribution Score (PAS)"]:::engine
+        RTree["Spatio-Temporal R-Tree Indexing"]
+        DeadReckon["Bi-LSTM AIS Dead-Reckoning"]
+        Attribution["Polluter Attribution Score (PAS)"]
     end
 
     subgraph Web3["🔒 Decentralized Compliance & Legal Layer"]
-        IPFS["📦 IPFS Evidence Dossier Storage"]:::ledger
-        SmartContract["📜 Solidity Fine Ledger (Polygon)"]:::ledger
+        IPFS["📦 IPFS Evidence Dossier Storage"]
+        SmartContract["📜 Solidity Fine Ledger (Polygon)"]
     end
 
     subgraph Client["🖥️ Unified GIS Command Dashboard"]
-        MapLibre["🗺️ MapLibre GL UI"]:::ui
-        deck["📊 deck.gl Heatmap & Tracks"]:::ui
-        Dossier["📄 Evidence Dossier PDF export"]:::ui
+        MapLibre["🗺️ MapLibre GL UI"]
+        deck["📊 deck.gl Heatmap & Tracks"]
+        Dossier["📄 Evidence Dossier PDF export"]
     end
 
     SAR --> Seg
@@ -80,7 +80,7 @@ graph TD
     MetOcean --> Lagrangian
     MetOcean --> Forecast
 
-    Lagrangian -->|Origin [T₀, X₀, Y₀]| Attribution
+    Lagrangian -->|Origin Coordinate and Time T₀| Attribution
     Forecast -->|Response Fleet Vectors| Client
 
     AIS --> RTree
@@ -93,6 +93,11 @@ graph TD
     MapLibre --> Client
     deck --> Client
     Dossier --> Client
+
+    class SAR,MetOcean,AIS datasource;
+    class Seg,GLCM,Lagrangian,Forecast,RTree,DeadReckon,Attribution engine;
+    class IPFS,SmartContract ledger;
+    class MapLibre,deck,Dossier ui;
 ```
 
 ---
