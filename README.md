@@ -80,7 +80,7 @@ graph TD
     MetOcean --> Lagrangian
     MetOcean --> Forecast
 
-    Lagrangian -->|Origin [T₀, X₀, Y₀]| Attribution
+    Lagrangian -->|Origin Coordinate and Time T₀| Attribution
     Forecast -->|Response Fleet Vectors| Client
 
     AIS --> RTree
