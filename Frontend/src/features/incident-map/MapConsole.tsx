@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import Map, { NavigationControl, Marker, MapRef } from 'react-map-gl/maplibre';
 import DeckGL from '@deck.gl/react';
-import { PathLayer, ScatterplotLayer } from 'deck.gl'; // added
+import { PathLayer, ScatterplotLayer } from 'deck.gl';
 import { useUiStore } from '@/stores/useUiStore';
 import { useDriftPlaybackStore } from '@/stores/useDriftPlaybackStore';
 import { useQuery } from '@tanstack/react-query';
@@ -13,6 +13,7 @@ import { AlertCircle } from 'lucide-react';
 import BlockchainEvidencePanel from '../blockchain/BlockchainEvidencePanel';
 import { DrawToolbar, useAnalyzeAnchor, type DrawState } from './DrawToolbar';
 import { AnalyzeResultModal } from './AnalyzeResultModal';
+import { VesselSimulator, type SimulationState } from '../vessel-simulation/VesselSimulator';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 const ESRI_OCEAN_STYLE: any = {
@@ -321,6 +322,66 @@ export const MapConsole: React.FC = () => {
         }
     }, [inspectedVesselMmsi]);
 
+    // ── Vessel Simulation State ──────────────────────────────────────────────────
+    const [simState, setSimState] = useState<SimulationState | null>(null);
+
+    const handleFlyTo = useCallback((lon: number, lat: number) => {
+        if (mapRef.current) {
+            mapRef.current.flyTo({ center: [lon, lat], zoom: 10.5, pitch: 40, bearing: -8, duration: 1200 });
+        }
+    }, []);
+
+    // Simulation deck.gl layers
+    const simLayers = simState ? [
+        new PathLayer({
+            id: 'sim-history',
+            data: [{ path: simState.historyPath }],
+            getPath: (d: any) => d.path,
+            getColor: [74, 111, 165, 120],
+            getWidth: 2,
+            widthMinPixels: 2,
+        }),
+        new PathLayer({
+            id: 'sim-actual',
+            data: simState.actualPath.length >= 2 ? [{ path: simState.actualPath }] : [],
+            getPath: (d: any) => d.path,
+            getColor: [0, 242, 254, 230],
+            getWidth: 3,
+            widthMinPixels: 3,
+        }),
+        new PathLayer({
+            id: 'sim-predicted',
+            data: simState.predictedPath.length >= 2 ? [{ path: simState.predictedPath }] : [],
+            getPath: (d: any) => d.path,
+            getColor: [184, 119, 255, 220],
+            getWidth: 3,
+            widthMinPixels: 3,
+            getDashArray: [6, 4],
+        }),
+        new ScatterplotLayer({
+            id: 'sim-actual-marker',
+            data: simState.markerPos ? [{ pos: simState.markerPos }] : [],
+            getPosition: (d: any) => d.pos,
+            getRadius: 5,
+            radiusMinPixels: 7,
+            getFillColor: [0, 242, 254, 255],
+            getLineColor: [255, 255, 255, 180],
+            stroked: true,
+            lineWidthMinPixels: 2,
+        }),
+        new ScatterplotLayer({
+            id: 'sim-predicted-marker',
+            data: simState.markerPos2 ? [{ pos: simState.markerPos2 }] : [],
+            getPosition: (d: any) => d.pos,
+            getRadius: 5,
+            radiusMinPixels: 7,
+            getFillColor: [184, 119, 255, 255],
+            getLineColor: [255, 255, 255, 180],
+            stroked: true,
+            lineWidthMinPixels: 2,
+        }),
+    ] : [];
+
     // Drawn polygon deck.gl layer
     const drawnPolygonLayer = drawnPolygon.length >= 2 ? [
         new PathLayer({
@@ -415,6 +476,9 @@ export const MapConsole: React.FC = () => {
 
         // 7. Drawn polygon layers
         ...drawnPolygonLayer,
+
+        // 8. Vessel simulation layers (actual + predicted + history)
+        ...simLayers,
     ].filter(Boolean);
 
     return (
@@ -444,6 +508,12 @@ export const MapConsole: React.FC = () => {
                 onClearPolygon={clearPolygon}
                 onAnalyze={handleAnalyze}
                 loading={analyzeLoading}
+            />
+
+            {/* Vessel Path Simulator Panel */}
+            <VesselSimulator
+                onSimulationUpdate={setSimState}
+                onFlyTo={handleFlyTo}
             />
 
             {/* MapLibre viewport */}
