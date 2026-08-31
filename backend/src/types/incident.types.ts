@@ -47,6 +47,25 @@ export interface ForensicAnchorPayload {
   files: EvidenceFilePayload[];
 }
 
+/**
+ * Simplified payload emitted by the /api/ml/analyze-and-anchor pipeline.
+ * The backend auto-fills missing fields with sensible defaults.
+ */
+export interface MLForensicPayload {
+  suspectMMSI: number;
+  spillPolygon: number[][];
+  spillAreaSqKm: number;
+  attributionScore: number;
+  oilProbability: number;
+  windSpeedMs: number;
+  estimatedAgeHours: number;
+  windArtifactConfidence: number;
+  sarClassification: Record<string, unknown>;
+  characterisation: Record<string, unknown>;
+  suspectScores: unknown[];
+}
+
+
 export interface ManifestFileEntry {
   name: string;
   sha256: string;

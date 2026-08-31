@@ -61,7 +61,10 @@ const envSchema = z.object({
 
   // Statutory Fine Calculation Defaults
   DEFAULT_BASE_FINE: z.string().default('1000').transform((val) => parseFloat(val)),
-  DEFAULT_AREA_MULTIPLIER: z.string().default('500').transform((val) => parseFloat(val))
+  DEFAULT_AREA_MULTIPLIER: z.string().default('500').transform((val) => parseFloat(val)),
+
+  // ML Inference Server
+  ML_SERVER_URL: z.string().url().default('http://localhost:8001')
 });
 
 const parseEnv = () => {

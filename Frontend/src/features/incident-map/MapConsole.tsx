@@ -152,7 +152,7 @@ const VESSEL_DENSITY_POINTS = [
     { coordinates: [72.5, 18.5], radius: 14000, value: 0.9 }
 ];
 
-import { VESSEL_DETECTIONS, VesselDetection } from '@/mocks/vessels';
+import { VESSEL_DETECTIONS } from '@/mocks/vessels';
 
 export const MUMBAI_SHIPS = VESSEL_DETECTIONS;
 

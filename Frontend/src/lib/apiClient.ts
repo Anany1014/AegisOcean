@@ -4,7 +4,7 @@ import mockSuspects from '@/mocks/suspects.json';
 import { Incident, DriftFrame, SuspectVessel } from '@/types/contract';
 import { useUiStore } from '@/stores/useUiStore';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api';
 
 // Simple delay helper to simulate network latency for mocks
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -20,7 +20,7 @@ export const apiClient = {
             const res = await fetch(`${API_BASE_URL}/incidents`);
             if (res.ok) {
                 const data = await res.json();
-                return [...data, ...customIncidents];
+                return [...(data?.data ?? data), ...customIncidents];
             }
             throw new Error('API request failed');
         } catch (err) {
@@ -72,14 +72,16 @@ export const apiClient = {
         return await res.json();
     },
 
+    // ── Blockchain calls — all proxied through the Express backend ────────────
+
     async getBlockchainIncident(id: string): Promise<any> {
-        const res = await fetch(`http://localhost:4000/api/blockchain/incident/${id}`);
+        const res = await fetch(`${API_BASE_URL}/blockchain/incident/${id}`);
         if (!res.ok) throw new Error('Failed to fetch blockchain incident');
         return await res.json();
     },
 
     async enforceBlockchainFine(id: string): Promise<any> {
-        const res = await fetch(`http://localhost:4000/api/blockchain/enforce`, {
+        const res = await fetch(`${API_BASE_URL}/blockchain/enforce`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ incidentId: parseInt(id, 10) }),
@@ -89,7 +91,7 @@ export const apiClient = {
     },
 
     async verifyBlockchainEvidence(ipfsCID: string, storedEvidenceHash: string): Promise<any> {
-        const res = await fetch(`http://localhost:4000/api/blockchain/verify-evidence`, {
+        const res = await fetch(`${API_BASE_URL}/blockchain/verify-evidence`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ipfsCID, storedEvidenceHash }),
@@ -97,13 +99,18 @@ export const apiClient = {
         if (!res.ok) throw new Error('Failed to verify evidence');
         return await res.json();
     },
+
+    // ── ML + Blockchain full pipeline ─────────────────────────────────────────
+
     async analyzeAndAnchorIncident(payload: {
         suspectMMSI: number;
         polygon: number[][];
         windSpeedMs: number;
         backscatterMean?: number;
+        aisPings?: object[];
+        spillTimestamp?: string;
     }): Promise<any> {
-        const res = await fetch(`http://localhost:4000/api/ml/analyze-and-anchor`, {
+        const res = await fetch(`${API_BASE_URL}/ml/analyze-and-anchor`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),

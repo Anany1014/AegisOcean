@@ -1,7 +1,8 @@
 import {
   ForensicAnchorPayload,
   IncidentRecord,
-  IncidentStatus
+  IncidentStatus,
+  MLForensicPayload
 } from '../types/incident.types.js';
 import {
   AnchorResult,
@@ -87,20 +88,61 @@ export class IncidentService {
 
   /**
    * Complete flow:
-   * 1. Receive forensic incident data
-   * 2. Validate request & check duplicate
-   * 3. Build canonical evidence manifest
-   * 4. Calculate SHA-256 file hashes
-   * 5. Pin evidence bundle to IPFS & retrieve CID
-   * 6. Calculate evidenceHash
-   * 7. Call MaritimeFineLedger.createIncident()
-   * 8. Wait for tx confirmation & parse IncidentAnchored event
-   * 9. Save all metadata in application database
-   * 10. Return incidentId, ipfsCID, evidenceHash, txHash, confirmationStatus
+   * Supports both ForensicAnchorPayload and simplified MLForensicPayload.
    */
   public async anchorForensicIncident(
-    payload: ForensicAnchorPayload
+    payload: ForensicAnchorPayload | MLForensicPayload
   ): Promise<AnchorResponseData> {
+    // If it's a simplified ML payload, transform to formal payload
+    if ('spillPolygon' in payload) {
+      const mlPayload = payload as MLForensicPayload;
+      const now = Date.now();
+      const incidentId = `ml-inc-${mlPayload.suspectMMSI}-${now}`;
+      const lons = mlPayload.spillPolygon.map(c => c[0]);
+      const lats = mlPayload.spillPolygon.map(c => c[1]);
+      const lon = lons.reduce((a, b) => a + b, 0) / (lons.length || 1);
+      const lat = lats.reduce((a, b) => a + b, 0) / (lats.length || 1);
+
+      const formal: ForensicAnchorPayload = {
+        incidentId,
+        sourceSatellite: 'SAR-Sentinel-1',
+        sceneId: `auto-${incidentId}`,
+        detectionTimestamp: Math.floor(now / 1000),
+        spillAreaSqKm: mlPayload.spillAreaSqKm,
+        originTimeWindow: { start: Math.floor(now / 1000) - 21600, end: Math.floor(now / 1000) },
+        originCoordinates: { latitude: lat, longitude: lon },
+        driftModelVersion: 'AegisOcean-ML-1.0',
+        aisDataRange: `auto-${new Date(now).toISOString()}`,
+        suspectMMSI: mlPayload.suspectMMSI,
+        attributionScore: mlPayload.attributionScore,
+        softwareVersions: {
+          sarSegmentation: 'AegisOcean-Stage2-1.0',
+          aisEngine: 'AegisOcean-LSTM-1.0',
+          hydrodynamicEngine: 'AegisOcean-Drift-1.0',
+        },
+        files: [
+          {
+            name: 'sar_classification.json',
+            contentBase64: Buffer.from(JSON.stringify(mlPayload.sarClassification)).toString('base64'),
+            mimeType: 'application/json',
+          },
+          {
+            name: 'characterisation.json',
+            contentBase64: Buffer.from(JSON.stringify(mlPayload.characterisation)).toString('base64'),
+            mimeType: 'application/json',
+          },
+          {
+            name: 'suspect_scores.json',
+            contentBase64: Buffer.from(JSON.stringify(mlPayload.suspectScores)).toString('base64'),
+            mimeType: 'application/json',
+          },
+        ],
+      };
+      return this.anchorForensicIncident(formal);
+    }
+
+    const formalPayload = payload as ForensicAnchorPayload;
+
     // 1 & 2. Check for duplicate incidentId with idempotency check
     const existing = this.incidentStore.get(payload.incidentId);
     if (existing) {

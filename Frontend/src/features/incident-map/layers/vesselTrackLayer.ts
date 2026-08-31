@@ -1,4 +1,4 @@
-import { PathLayer, ScatterplotLayer } from '@deck.gl/layers';
+import { PathLayer } from '@deck.gl/layers';
 import { SuspectVessel } from '@/types/contract';
 import { tokens, hexToRGBA } from '@/ui/tokens';
 

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import incidentRoutes from './incident.routes.js';
 import blockchainRoutes from './blockchain.routes.js';
+import mlRoutes from './ml.routes.js';
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.get('/health', (_req, res) => {
 // Mount module routers
 router.use('/incidents', incidentRoutes);
 router.use('/blockchain', blockchainRoutes);
+router.use('/ml', mlRoutes);
 
 export default router;

@@ -1,8 +1,7 @@
 import React from 'react';
 import { VesselDetection } from '@/mocks/vessels';
-import { Badge } from '@/ui/Badge';
 import { Card } from '@/ui/Card';
-import { Ship, Navigation, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Navigation, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 interface VesselListItemProps {
     vessel: VesselDetection;

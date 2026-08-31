@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { mlClient } from '@/lib/mlClient';
-import { useUiStore } from '@/stores/useUiStore';
 import { Incident } from '@/types/contract';
-import type { SARClassifyResponse, SuspectScoreResponse, AISPredictResponse } from '@/types/ml';
+import type { SuspectScoreResponse } from '@/types/ml';
 import {
-    Brain, Radio, AlertTriangle, CheckCircle, XCircle,
-    Zap, Ship, Eye, EyeOff, TrendingUp, Target, Activity,
+    Brain, Radio, AlertTriangle, CheckCircle,
+    Zap, Ship, EyeOff, TrendingUp, Target, Activity,
     ChevronDown, ChevronUp, Loader2,
 } from 'lucide-react';
+
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 

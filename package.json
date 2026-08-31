@@ -1,0 +1,24 @@
+{
+  "name": "aegisocean",
+  "version": "1.0.0",
+  "description": "AegisOcean — AI-Powered Maritime Oil Spill Detection, Vessel Attribution & Blockchain Evidence Anchoring",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail --prefix \"[{name}]\" --names \"ML,BACKEND,FRONTEND\" -c \"magenta,blue,cyan\" \"npm run dev:ml\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:all": "concurrently --kill-others-on-fail --prefix \"[{name}]\" --names \"BLOCKCHAIN,ML,BACKEND,FRONTEND\" -c \"yellow,magenta,blue,cyan\" \"npm run dev:blockchain\" \"npm run dev:ml\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:ml": "python ml/serve.py",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd Frontend && npm run dev",
+    "dev:blockchain": "cd AegisOcean-repo/blockchain && npx hardhat node",
+    "install:all": "npm install && cd backend && npm install && cd ../Frontend && npm install && cd ../AegisOcean-repo/blockchain && npm install",
+    "build:frontend": "cd Frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "test:backend": "cd backend && npm test",
+    "typecheck": "cd backend && npm run typecheck && cd ../Frontend && npx tsc -b"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "author": "AegisOcean Team",
+  "license": "MIT"
+}

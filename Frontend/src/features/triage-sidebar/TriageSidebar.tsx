@@ -4,7 +4,7 @@ import { apiClient } from '@/lib/apiClient';
 import { useUiStore } from '@/stores/useUiStore';
 import { IncidentListItem } from './IncidentListItem';
 import { VesselListItem } from './VesselListItem';
-import { VESSEL_DETECTIONS, VesselDetection } from '@/mocks/vessels';
+import { VESSEL_DETECTIONS } from '@/mocks/vessels';
 import { Card } from '@/ui/Card';
 import { Badge } from '@/ui/Badge';
 import { Filter, ArrowUpDown, RefreshCw, ChevronDown, ChevronRight, Layers, MapPin, Eye, Compass } from 'lucide-react';
