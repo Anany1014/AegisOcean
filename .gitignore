@@ -46,3 +46,6 @@ venv/
 *.csv.zst
 *.zip
 *.tar*
+
+# Notebooks
+ml/notebooks/convert_to_notebooks.py
