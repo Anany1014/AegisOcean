@@ -58,21 +58,21 @@ graph TD
 
     SAR --> Seg
     Seg --> GLCM
-    GLCM -->|Slick Geometry| Lagrangian
+    GLCM -->|"Slick Geometry"| Lagrangian
 
     MetOcean --> Lagrangian
     MetOcean --> Forecast
 
-    Lagrangian -->|Spill Origin (T₀, X₀, Y₀)| Attribution
-    Forecast -->|Response Fleet Vectors| Client
+    Lagrangian -->|"Spill Origin (T₀, X₀, Y₀)"| Attribution
+    Forecast -->|"Response Fleet Vectors"| Client
 
     AIS --> RTree
     RTree --> DeadReckon
     DeadReckon --> Attribution
 
-    Attribution -->|Attributed Polluter Dossier| IPFS
-    IPFS -->|IPFS CID| SmartContract
-    SmartContract -->|On-Chain Audit Trail| Client
+    Attribution -->|"Attributed Polluter Dossier"| IPFS
+    IPFS -->|"IPFS CID"| SmartContract
+    SmartContract -->|"On-Chain Audit Trail"| Client
     MapLibre --> Client
     TimeSlider --> Client
     Dossier --> Client
