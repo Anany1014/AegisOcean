@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { Pencil, X, Zap, CheckSquare, Trash2, Loader2, Wind } from 'lucide-react';
+import { Pencil, X, Zap, Trash2, Loader2, Wind } from 'lucide-react';
 import { apiClient } from '@/lib/apiClient';
 
 export type DrawState = 'idle' | 'drawing' | 'ready' | 'loading' | 'done';
@@ -58,21 +58,21 @@ export const DrawToolbar: React.FC<DrawToolbarProps> = ({
   }
 
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 w-[480px]">
-      <div className="bg-[#111]/92 border border-white/15 rounded-2xl shadow-2xl backdrop-blur-md overflow-hidden">
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 w-[520px]">
+      <div className="bg-[#111]/95 border border-white/20 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-md overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10">
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10 bg-white/5">
           <div className="flex items-center space-x-2">
-            <div className={`w-2 h-2 rounded-full ${drawState === 'drawing' ? 'bg-[#F983E9] animate-pulse' : 'bg-[#B877FF]'}`} />
-            <span className="text-[10px] font-mono font-bold tracking-widest text-white/80 uppercase">
+            <div className={`w-2 h-2 rounded-full ${drawState === 'drawing' ? 'bg-[#F983E9] animate-ping' : 'bg-[#B877FF]'}`} />
+            <span className="text-[10px] font-mono font-bold tracking-widest text-white/90 uppercase">
               {drawState === 'drawing'
-                ? `DRAWING — ${polygon.length} POINT${polygon.length !== 1 ? 'S' : ''} (click to add · double-click to close)`
+                ? `DRAWING — ${polygon.length} VERTICES (CLICK MAP TO PLACE POINTS)`
                 : drawState === 'loading'
-                ? 'RUNNING ML PIPELINE...'
-                : 'POLYGON READY'}
+                ? '⚡ EXECUTING STAGE 2 SAR & BI-LSTM ATTRIBUTION...'
+                : 'POLYGON SEALED & READY'}
             </span>
           </div>
-          <button onClick={onCancelDraw} className="text-white/30 hover:text-white transition-colors">
+          <button onClick={onCancelDraw} className="text-white/40 hover:text-white transition-colors p-1">
             <X size={14} />
           </button>
         </div>
@@ -81,10 +81,10 @@ export const DrawToolbar: React.FC<DrawToolbarProps> = ({
         <div className="px-4 py-3 flex items-center space-x-3">
           {/* Wind speed slider */}
           <div className="flex-1 space-y-1">
-            <div className="flex items-center justify-between text-[9px] font-mono text-white/40">
+            <div className="flex items-center justify-between text-[9px] font-mono text-white/50">
               <span className="flex items-center space-x-1">
-                <Wind size={9} />
-                <span>WIND SPEED</span>
+                <Wind size={10} className="text-cyan-400" />
+                <span>ERA5 WIND SPEED</span>
               </span>
               <span className="text-[#B877FF] font-semibold">{windSpeed.toFixed(1)} m/s</span>
             </div>
@@ -93,50 +93,44 @@ export const DrawToolbar: React.FC<DrawToolbarProps> = ({
               onChange={e => setWindSpeed(parseFloat(e.target.value))}
               className="w-full h-1 accent-[#B877FF] bg-white/10 rounded-full outline-none cursor-pointer"
             />
-            <div className="flex justify-between text-[8px] font-mono text-white/20">
-              <span>CALM</span>
-              <span>STORM</span>
+            <div className="flex justify-between text-[7.5px] font-mono text-white/30">
+              <span>CALM (&lt;2m/s)</span>
+              <span>OPTIMAL (3-6m/s)</span>
+              <span>HIGH WIND (&gt;10m/s)</span>
             </div>
           </div>
 
           {/* Vertex count */}
-          {drawState !== 'drawing' && (
-            <div className="text-center px-3">
-              <div className="text-[20px] font-bold font-mono text-[#B877FF]">{polygon.length}</div>
-              <div className="text-[8px] font-mono text-white/30 uppercase">Vertices</div>
-            </div>
-          )}
+          <div className="text-center px-2 border-l border-white/10">
+            <div className="text-[18px] font-bold font-mono text-[#B877FF]">{polygon.length}</div>
+            <div className="text-[7.5px] font-mono text-white/40 uppercase">Points</div>
+          </div>
 
           {/* Actions */}
           <div className="flex items-center space-x-2">
-            {drawState === 'ready' && (
-              <>
-                <button
-                  onClick={onClearPolygon}
-                  className="p-2 rounded-lg border border-white/10 text-white/30 hover:text-[#ff5a50] hover:border-[#ff5a50]/40 transition-all"
-                  title="Clear polygon"
-                >
-                  <Trash2 size={13} />
-                </button>
-                <button
-                  onClick={() => onAnalyze(windSpeed)}
-                  disabled={loading || polygon.length < 3}
-                  className="flex items-center space-x-1.5 px-4 py-2 bg-gradient-to-r from-[#B877FF] to-[#F983E9] text-black font-mono font-bold text-[10px] rounded-lg hover:opacity-90 disabled:opacity-40 transition-all shadow-[0_0_20px_rgba(184,119,255,0.4)]"
-                >
-                  {loading ? <Loader2 size={13} className="animate-spin" /> : <Zap size={13} />}
-                  <span>ANALYZE</span>
-                </button>
-              </>
+            {polygon.length > 0 && (
+              <button
+                onClick={onClearPolygon}
+                className="p-2 rounded-lg border border-white/10 text-white/40 hover:text-[#ff5a50] hover:border-[#ff5a50]/40 transition-all"
+                title="Reset points"
+              >
+                <Trash2 size={13} />
+              </button>
             )}
-            {drawState === 'drawing' && polygon.length >= 3 && (
+
+            {polygon.length >= 3 ? (
               <button
                 onClick={() => onAnalyze(windSpeed)}
                 disabled={loading}
-                className="flex items-center space-x-1.5 px-3 py-2 border border-[#B877FF]/50 text-[#B877FF] font-mono text-[9px] rounded-lg hover:bg-[#B877FF]/10 transition-all"
+                className="flex items-center space-x-1.5 px-4 py-2 bg-gradient-to-r from-[#B877FF] to-[#F983E9] text-black font-mono font-bold text-[10px] rounded-lg hover:opacity-90 disabled:opacity-40 transition-all shadow-[0_0_20px_rgba(184,119,255,0.5)] cursor-pointer"
               >
-                <CheckSquare size={12} />
-                <span>CLOSE & ANALYZE</span>
+                {loading ? <Loader2 size={13} className="animate-spin" /> : <Zap size={13} />}
+                <span>PREDICT & ANCHOR</span>
               </button>
+            ) : (
+              <span className="text-[9px] font-mono text-white/40 italic px-2">
+                Click {Math.max(0, 3 - polygon.length)} more point{3 - polygon.length !== 1 ? 's' : ''} on map
+              </span>
             )}
           </div>
         </div>

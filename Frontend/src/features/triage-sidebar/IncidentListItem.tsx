@@ -15,15 +15,15 @@ export const IncidentListItem: React.FC<IncidentListItemProps> = ({
     isSelected,
     onClick,
 }) => {
-    const dateFormatted = new Date(incident.detectedAt).toLocaleString('en-US', {
+    const dateFormatted = incident?.detectedAt ? new Date(incident.detectedAt).toLocaleString('en-US', {
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
         hour12: false,
-    });
+    }) : 'Recent';
 
-    const getStatusBadge = (status: Incident['status']) => {
+    const getStatusBadge = (status?: Incident['status']) => {
         switch (status) {
             case 'confirmed':
                 return <Badge variant="red">CONFIRMED</Badge>;
@@ -34,7 +34,7 @@ export const IncidentListItem: React.FC<IncidentListItemProps> = ({
         }
     };
 
-    const isHighWindArtifact = incident.windArtifactConfidence > 0.6;
+    const isHighWindArtifact = (incident?.windArtifactConfidence ?? 0) > 0.6;
 
     return (
         <Card
@@ -53,7 +53,7 @@ export const IncidentListItem: React.FC<IncidentListItemProps> = ({
             {/* Header Info */}
             <div className="flex items-center justify-between mb-2">
                 <span className="data-value text-[var(--foam)] font-bold tracking-wider">
-                    {incident.id.toUpperCase()}
+                    {incident?.id ? incident.id.toUpperCase() : 'INCIDENT'}
                 </span>
                 <div className="flex items-center space-x-1.5">
                     {isHighWindArtifact && (
@@ -61,7 +61,7 @@ export const IncidentListItem: React.FC<IncidentListItemProps> = ({
                             WIND-WARPING
                         </Badge>
                     )}
-                    {getStatusBadge(incident.status)}
+                    {getStatusBadge(incident?.status)}
                 </div>
             </div>
 
@@ -70,13 +70,13 @@ export const IncidentListItem: React.FC<IncidentListItemProps> = ({
                 <div>
                     <span className="text-[9px] uppercase tracking-wider block opacity-50">Area coverage</span>
                     <span className="data-value text-[var(--foam)] font-semibold">
-                        {incident.areaKm2.toFixed(1)} km²
+                        {(incident?.areaKm2 ?? 0).toFixed(1)} km²
                     </span>
                 </div>
                 <div>
                     <span className="text-[9px] uppercase tracking-wider block opacity-50">P/A ratio</span>
                     <span className="data-value text-[var(--foam)] font-semibold">
-                        {incident.perimeterToAreaRatio.toFixed(2)}
+                        {(incident?.perimeterToAreaRatio ?? 0).toFixed(2)}
                     </span>
                 </div>
             </div>

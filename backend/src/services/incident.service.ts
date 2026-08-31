@@ -57,7 +57,9 @@ export class IncidentService {
     private customManifestService?: EvidenceManifestService,
     private customFineService?: FineCalculationService,
     private customVerificationService?: EvidenceVerificationService
-  ) {}
+  ) {
+    this.seedIndianIncidents();
+  }
 
   private getIpfs(): IpfsService {
     return this.customIpfsService || ipfsService;
@@ -77,6 +79,107 @@ export class IncidentService {
 
   private getVerificationService(): EvidenceVerificationService {
     return this.customVerificationService || evidenceVerificationService;
+  }
+
+  private seedIndianIncidents(): void {
+    const seeds: Array<{
+      id: string;
+      detectedAt: string;
+      lat: number;
+      lon: number;
+      polygon: number[][];
+      areaKm2: number;
+      par: number;
+      windConf: number;
+      suspectMMSI: number;
+      status: IncidentStatus;
+    }> = [
+      {
+        id: 'INC-IND-MUMBAI-01',
+        detectedAt: '2026-08-28T04:15:00Z',
+        lat: 19.35, lon: 71.95,
+        polygon: [[71.85, 19.35], [71.95, 19.42], [72.05, 19.38], [71.98, 19.28], [71.88, 19.26], [71.85, 19.35]],
+        areaKm2: 28.4, par: 0.28, windConf: 0.08, suspectMMSI: 419001234, status: IncidentStatus.ANCHORED
+      },
+      {
+        id: 'INC-IND-KUTCH-02',
+        detectedAt: '2026-08-29T11:20:00Z',
+        lat: 22.40, lon: 68.90,
+        polygon: [[68.80, 22.40], [68.92, 22.48], [69.02, 22.42], [68.95, 22.32], [68.82, 22.33], [68.80, 22.40]],
+        areaKm2: 34.6, par: 0.22, windConf: 0.04, suspectMMSI: 419000123, status: IncidentStatus.ANCHORED
+      },
+      {
+        id: 'INC-IND-GOA-03',
+        detectedAt: '2026-08-30T06:45:00Z',
+        lat: 15.65, lon: 73.22,
+        polygon: [[73.15, 15.65], [73.24, 15.72], [73.32, 15.68], [73.28, 15.58], [73.18, 15.56], [73.15, 15.65]],
+        areaKm2: 16.2, par: 0.35, windConf: 0.11, suspectMMSI: 419000456, status: IncidentStatus.ANCHORED
+      },
+      {
+        id: 'INC-IND-KOCHI-04',
+        detectedAt: '2026-08-30T16:10:00Z',
+        lat: 9.45, lon: 75.88,
+        polygon: [[75.80, 9.45], [75.90, 9.52], [75.98, 9.48], [75.92, 9.38], [75.82, 9.36], [75.80, 9.45]],
+        areaKm2: 19.8, par: 0.31, windConf: 0.09, suspectMMSI: 419002100, status: IncidentStatus.ENFORCED
+      },
+      {
+        id: 'INC-IND-CHENNAI-05',
+        detectedAt: '2026-08-31T02:30:00Z',
+        lat: 13.25, lon: 80.65,
+        polygon: [[80.55, 13.25], [80.68, 13.32], [80.76, 13.26], [80.69, 13.16], [80.58, 13.15], [80.55, 13.25]],
+        areaKm2: 24.1, par: 0.26, windConf: 0.06, suspectMMSI: 419002678, status: IncidentStatus.ANCHORED
+      },
+      {
+        id: 'INC-IND-VIZAG-06',
+        detectedAt: '2026-08-31T09:00:00Z',
+        lat: 17.50, lon: 83.70,
+        polygon: [[83.60, 17.50], [83.72, 17.58], [83.82, 17.52], [83.75, 17.42], [83.64, 17.40], [83.60, 17.50]],
+        areaKm2: 31.5, par: 0.24, windConf: 0.05, suspectMMSI: 419001012, status: IncidentStatus.ENFORCED
+      },
+      {
+        id: 'INC-IND-PARADIP-07',
+        detectedAt: '2026-08-31T15:20:00Z',
+        lat: 20.15, lon: 86.95,
+        polygon: [[86.85, 20.15], [86.96, 20.24], [87.05, 20.18], [86.98, 20.08], [86.88, 20.06], [86.85, 20.15]],
+        areaKm2: 42.0, par: 0.19, windConf: 0.03, suspectMMSI: 419001567, status: IncidentStatus.ANCHORED
+      },
+      {
+        id: 'INC-IND-PALK-08',
+        detectedAt: '2026-08-31T20:00:00Z',
+        lat: 9.15, lon: 79.92,
+        polygon: [[79.85, 9.15], [79.94, 9.22], [80.02, 9.18], [79.96, 9.08], [79.86, 9.06], [79.85, 9.15]],
+        areaKm2: 11.7, par: 0.44, windConf: 0.14, suspectMMSI: 419000789, status: IncidentStatus.ANCHORED
+      }
+    ];
+
+    for (const s of seeds) {
+      this.incidentStore.set(s.id, {
+        incidentId: s.id,
+        incidentIdBytes32: '0x' + Buffer.from(s.id.padEnd(32, '0')).toString('hex').slice(0, 64),
+        sourceSatellite: 'SAR-Sentinel-1',
+        sceneId: `scene-${s.id}`,
+        detectionTimestamp: Math.floor(new Date(s.detectedAt).getTime() / 1000),
+        spillAreaSqKm: s.areaKm2,
+        originTimeWindow: { start: Math.floor(new Date(s.detectedAt).getTime() / 1000) - 21600, end: Math.floor(new Date(s.detectedAt).getTime() / 1000) },
+        originCoordinates: { latitude: s.lat, longitude: s.lon },
+        driftModelVersion: 'AegisOcean-ML-1.0',
+        aisDataRange: `auto-${s.detectedAt}`,
+        suspectMMSI: s.suspectMMSI,
+        attributionScore: 88,
+        softwareVersions: {
+          sarSegmentation: 'AegisOcean-Stage2-1.0',
+          aisEngine: 'AegisOcean-LSTM-1.0',
+          hydrodynamicEngine: 'AegisOcean-Drift-1.0',
+        },
+        ipfsCID: `bafybeic${s.id.toLowerCase().replace(/[^a-z0-9]/g, '')}mockipfs`,
+        evidenceHash: `0x${Buffer.from(s.id).toString('hex').padEnd(64, '0')}`,
+        fineAmount: s.areaKm2 * 1250,
+        status: s.status,
+        anchorTxHash: `0x${Buffer.from('tx-' + s.id).toString('hex').padEnd(64, '0')}`,
+        createdAt: Math.floor(new Date(s.detectedAt).getTime() / 1000),
+        manifest: {} as any
+      });
+    }
   }
 
   /**
