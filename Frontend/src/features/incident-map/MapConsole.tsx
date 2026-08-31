@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import Map, { NavigationControl, Marker, MapRef } from 'react-map-gl/maplibre';
 import DeckGL from '@deck.gl/react';
 import { PathLayer, ScatterplotLayer } from 'deck.gl'; // added
@@ -11,6 +11,8 @@ import { createDriftHeatmapLayer } from './layers/driftHeatmapLayer';
 import { createVesselTrackLayer } from './layers/vesselTrackLayer';
 import { AlertCircle } from 'lucide-react';
 import BlockchainEvidencePanel from '../blockchain/BlockchainEvidencePanel';
+import { DrawToolbar, useAnalyzeAnchor, type DrawState } from './DrawToolbar';
+import { AnalyzeResultModal } from './AnalyzeResultModal';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 const ESRI_OCEAN_STYLE: any = {
@@ -171,6 +173,68 @@ export const MapConsole: React.FC = () => {
     const [currentTime, setCurrentTime] = useState<string>('');
     const [selectedShipIncidentId, setSelectedShipIncidentId] = useState<string | null>(null);
 
+    // ── Draw-to-Analyze State ──────────────────────────────────────────────────
+    const [drawState, setDrawState] = useState<DrawState>('idle');
+    const [drawnPolygon, setDrawnPolygon] = useState<number[][]>([]);
+    const { loading: analyzeLoading, result: analyzeResult, error: analyzeError, analyze, setResult } = useAnalyzeAnchor();
+    const [showResultModal, setShowResultModal] = useState(false);
+
+    // Keyboard shortcut ⌃D to start drawing
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                if (drawState === 'idle') startDraw();
+                else cancelDraw();
+            }
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, [drawState]);
+
+    const startDraw = useCallback(() => {
+        setDrawState('drawing');
+        setDrawnPolygon([]);
+    }, []);
+
+    const cancelDraw = useCallback(() => {
+        setDrawState('idle');
+        setDrawnPolygon([]);
+    }, []);
+
+    const clearPolygon = useCallback(() => {
+        setDrawState('drawing');
+        setDrawnPolygon([]);
+    }, []);
+
+    const handleMapClick = useCallback((e: any) => {
+        if (drawState === 'drawing') {
+            const { lng, lat } = e.lngLat;
+            setDrawnPolygon(prev => {
+                const next = [...prev, [lng, lat]];
+                return next;
+            });
+        }
+    }, [drawState]);
+
+    const handleMapDblClick = useCallback((e: any) => {
+        if (drawState === 'drawing' && drawnPolygon.length >= 3) {
+            e.preventDefault();
+            setDrawState('ready');
+        }
+    }, [drawState, drawnPolygon]);
+
+    const handleAnalyze = useCallback(async (windSpeedMs: number) => {
+        const poly = drawState === 'drawing' ? drawnPolygon : drawnPolygon;
+        if (poly.length < 3) return;
+        // Close polygon
+        const closed = [...poly, poly[0]];
+        setDrawState('loading');
+        await analyze(closed, windSpeedMs);
+        setDrawState('done');
+        setShowResultModal(true);
+    }, [drawState, drawnPolygon, analyze]);
+
     // Real-time ticking system clock hook
     useEffect(() => {
         const updateTime = () => {
@@ -214,35 +278,71 @@ export const MapConsole: React.FC = () => {
         enabled: !!selectedIncidentId,
     });
 
-    // Pan to selected incident centroid smoothly (600ms easing)
+    // ── Enhancement 1: 3D Fly-To Camera Animation ─────────────────────────────
     useEffect(() => {
         if (currentIncident && currentIncident.polygon.coordinates[0][0]) {
-            const firstCoord = currentIncident.polygon.coordinates[0][0];
-            const lng = firstCoord[0];
-            const lat = firstCoord[1];
-            setViewState((prev) => ({
-                ...prev,
-                longitude: lng,
-                latitude: lat,
-                zoom: 11,
-            }));
+            const coords = currentIncident.polygon.coordinates[0];
+            const lng = coords.reduce((s: number, c: number[]) => s + c[0], 0) / coords.length;
+            const lat = coords.reduce((s: number, c: number[]) => s + c[1], 0) / coords.length;
+
+            if (mapRef.current) {
+                mapRef.current.flyTo({
+                    center: [lng, lat],
+                    zoom: 11.5,
+                    pitch: 45,
+                    bearing: -12,
+                    duration: 1400,
+                    essential: true,
+                });
+            } else {
+                setViewState(prev => ({ ...prev, longitude: lng, latitude: lat, zoom: 11.5, pitch: 45, bearing: -12 }));
+            }
         }
     }, [currentIncident]);
 
-    // Pan to inspected vessel coordinates when selected from sidebar
+    // Pan to inspected vessel coordinates with fly-to when selected from sidebar
     useEffect(() => {
         if (inspectedVesselMmsi) {
             const vessel = VESSEL_DETECTIONS.find((v) => v.mmsi === inspectedVesselMmsi);
             if (vessel) {
-                setViewState((prev) => ({
-                    ...prev,
-                    longitude: vessel.coordinates[0],
-                    latitude: vessel.coordinates[1],
-                    zoom: 11.5,
-                }));
+                if (mapRef.current) {
+                    mapRef.current.flyTo({
+                        center: [vessel.coordinates[0], vessel.coordinates[1]],
+                        zoom: 12.5,
+                        pitch: 55,
+                        bearing: 10,
+                        duration: 1000,
+                        essential: true,
+                    });
+                } else {
+                    setViewState(prev => ({ ...prev, longitude: vessel.coordinates[0], latitude: vessel.coordinates[1], zoom: 12.5 }));
+                }
             }
         }
     }, [inspectedVesselMmsi]);
+
+    // Drawn polygon deck.gl layer
+    const drawnPolygonLayer = drawnPolygon.length >= 2 ? [
+        new PathLayer({
+            id: 'drawn-polygon',
+            data: [{ path: drawState === 'ready' || drawState === 'loading' || drawState === 'done' ? [...drawnPolygon, drawnPolygon[0]] : drawnPolygon }],
+            getPath: (d: any) => d.path,
+            getColor: [184, 119, 255, 220],
+            getWidth: 2,
+            widthMinPixels: 2.5,
+        }),
+        new ScatterplotLayer({
+            id: 'drawn-vertices',
+            data: drawnPolygon.map((p, i) => ({ position: p, isFirst: i === 0 })),
+            getPosition: (d: any) => d.position,
+            getRadius: 4,
+            radiusMinPixels: 4,
+            getFillColor: (d: any) => d.isFirst ? [249, 131, 233, 255] : [184, 119, 255, 200],
+            getLineColor: [255, 255, 255, 100],
+            stroked: true,
+            lineWidthMinPixels: 1,
+        }),
+    ] : [];
 
     // Construct deck.gl layers
     const layers = [
@@ -252,7 +352,7 @@ export const MapConsole: React.FC = () => {
             selectedIncidentId,
             (info) => setHoverInfo(info.object ? { x: info.x, y: info.y, text: `Incident: ${info.object.properties.id}` } : null),
             (info) => {
-                if (info.object) {
+                if (info.object && drawState === 'idle') {
                     setSelectedIncidentId(info.object.properties.id);
                 }
             }
@@ -312,6 +412,9 @@ export const MapConsole: React.FC = () => {
             stroked: false,
             pickable: false,
         }) : null,
+
+        // 7. Drawn polygon layers
+        ...drawnPolygonLayer,
     ].filter(Boolean);
 
     return (
@@ -332,6 +435,17 @@ export const MapConsole: React.FC = () => {
                 </div>
             )}
 
+            {/* Draw Toolbar — Enhancement 4 */}
+            <DrawToolbar
+                drawState={drawState === 'done' ? 'ready' : drawState}
+                polygon={drawnPolygon}
+                onStartDraw={startDraw}
+                onCancelDraw={cancelDraw}
+                onClearPolygon={clearPolygon}
+                onAnalyze={handleAnalyze}
+                loading={analyzeLoading}
+            />
+
             {/* MapLibre viewport */}
             <Map
                 ref={mapRef}
@@ -339,6 +453,9 @@ export const MapConsole: React.FC = () => {
                 onMove={(evt: any) => setViewState(evt.viewState)}
                 onMouseMove={(evt: any) => setMouseCoords(evt.lngLat ? { lng: evt.lngLat.lng, lat: evt.lngLat.lat } : null)}
                 onMouseLeave={() => setMouseCoords(null)}
+                onClick={handleMapClick}
+                onDblClick={handleMapDblClick}
+                doubleClickZoom={drawState !== 'drawing'}
                 mapStyle={
                     currentBasemap === 'esri-ocean'
                         ? ESRI_OCEAN_STYLE
@@ -346,6 +463,7 @@ export const MapConsole: React.FC = () => {
                             ? ESRI_TOPO_STYLE
                             : ESRI_DARK_GRAY_STYLE
                 }
+                style={{ cursor: drawState === 'drawing' ? 'crosshair' : 'grab' }}
             >
                 <NavigationControl position="top-right" />
                 <DeckGL viewState={viewState} layers={layers} style={{ pointerEvents: 'none' }} />
@@ -363,6 +481,7 @@ export const MapConsole: React.FC = () => {
                         >
                             <div
                                 onClick={(e) => {
+                                    if (drawState !== 'idle') return;
                                     e.stopPropagation();
                                     setSelectedIncidentId(ship.incidentId);
                                     setInspectedVesselMmsi(ship.mmsi);
@@ -427,6 +546,14 @@ export const MapConsole: React.FC = () => {
                 GRID PROJECTION · EPSG:4325<br />
                 CENTER · LNG {viewState.longitude.toFixed(5)} LAT {viewState.latitude.toFixed(5)}<br />
                 ZOOM LVL · {viewState.zoom.toFixed(1)}
+                {drawState !== 'idle' && (
+                    <>
+                        <br />
+                        <span className="text-[#B877FF] opacity-100">
+                            DRAW MODE · {drawnPolygon.length} VERTICES
+                        </span>
+                    </>
+                )}
             </div>
 
             {/* Live Hover coordinates & updating clock box */}
@@ -440,6 +567,20 @@ export const MapConsole: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Analyze Result Modal — Enhancement 4 */}
+            {showResultModal && (
+                <AnalyzeResultModal
+                    result={analyzeResult}
+                    error={analyzeError}
+                    onClose={() => {
+                        setShowResultModal(false);
+                        setResult(null);
+                        setDrawState('idle');
+                        setDrawnPolygon([]);
+                    }}
+                />
+            )}
         </div>
     );
 };

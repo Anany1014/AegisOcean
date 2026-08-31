@@ -12,6 +12,7 @@ export interface Incident {
     perimeterToAreaRatio: number;
     windArtifactConfidence: number; // 0-1, higher = more likely false positive
     status: IncidentStatus;
+    severity?: string;
     // Derived / display fields (computed in frontend)
     centroid?: [number, number]; // [lng, lat] — computed from polygon on ingest
 }

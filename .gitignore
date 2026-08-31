@@ -47,5 +47,7 @@ venv/
 *.zip
 *.tar*
 
-# Notebooks
+# Notebooks and ML scripts
 ml/notebooks/convert_to_notebooks.py
+ml/*.py
+ml/**/*.py

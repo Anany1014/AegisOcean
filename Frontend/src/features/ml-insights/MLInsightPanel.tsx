@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { mlClient } from '@/lib/mlClient';
 import { Incident } from '@/types/contract';
 import type { SuspectScoreResponse } from '@/types/ml';
+import { RadialGauge } from '@/ui/RadialGauge';
 import {
     Brain, Radio, AlertTriangle, CheckCircle,
     Zap, Ship, EyeOff, TrendingUp, Target, Activity,
@@ -79,39 +80,28 @@ const SARClassificationCard: React.FC<{ incident: Incident }> = ({ incident }) =
             </div>
 
             <div className="p-3 space-y-3">
-                {/* Probability gauge */}
-                <div className="flex items-center space-x-3">
-                    {/* Radial gauge */}
-                    <div className="relative flex-shrink-0">
-                        <svg width="56" height="56" viewBox="0 0 56 56">
-                            <circle cx="28" cy="28" r="22" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5" />
-                            <circle
-                                cx="28" cy="28" r="22" fill="none"
-                                stroke={ringColor} strokeWidth="5"
-                                strokeDasharray={`${data.oil_probability * 138.2} 138.2`}
-                                strokeLinecap="round"
-                                transform="rotate(-90 28 28)"
-                                className="transition-all duration-700"
-                            />
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-[11px] font-mono font-bold" style={{ color: ringColor }}>
-                                {(data.oil_probability * 100).toFixed(0)}%
-                            </span>
-                        </div>
-                    </div>
+                {/* Probability gauge with upgraded RadialGauge */}
+                <div className="flex items-center space-x-4">
+                    <RadialGauge
+                        value={data.oil_probability}
+                        size={78}
+                        valueColor={ringColor}
+                        sublabel="Oil Prob"
+                        strokeWidth={6}
+                    />
 
                     <div className="flex-1 space-y-1.5">
                         <div className="flex justify-between items-center">
-                            <span className="text-[9px] font-mono text-white/40 uppercase">Oil Probability</span>
-                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-[3px]"
+                            <span className="text-[9px] font-mono text-white/40 uppercase">Confidence Rating</span>
+                            <span className="text-[9px] font-mono px-2 py-0.5 rounded-[3px] font-bold"
                                 style={{ background: ringColor + '25', color: ringColor }}>
                                 {data.confidence_class}
                             </span>
                         </div>
                         <Meter value={data.oil_probability} color={ringColor} />
-                        <div className="flex justify-between text-[9px] font-mono text-white/30">
-                            <span>Threshold: {data.threshold_used} (Youden's J)</span>
+                        <div className="flex justify-between text-[9px] font-mono text-white/30 pt-0.5">
+                            <span>Youden's J Cutoff: {data.threshold_used}</span>
+                            <span>Model F1: 94.4%</span>
                         </div>
                     </div>
                 </div>
@@ -119,11 +109,11 @@ const SARClassificationCard: React.FC<{ incident: Incident }> = ({ incident }) =
                 {/* Feature breakdown */}
                 <div className="grid grid-cols-3 gap-2 pt-1 border-t border-[var(--hairline)]">
                     {[
-                        { label: 'Area', value: `${incident.areaKm2} km²`, icon: <Target className="w-3 h-3" /> },
+                        { label: 'Area', value: `${incident.areaKm2.toFixed(2)} km²`, icon: <Target className="w-3 h-3" /> },
                         { label: 'PAR', value: incident.perimeterToAreaRatio.toFixed(2), icon: <Activity className="w-3 h-3" /> },
                         { label: 'Wind Conf', value: `${(incident.windArtifactConfidence * 100).toFixed(0)}%`, icon: <TrendingUp className="w-3 h-3" /> },
                     ].map(({ label, value, icon }) => (
-                        <div key={label} className="flex flex-col items-center space-y-1 text-center">
+                        <div key={label} className="flex flex-col items-center space-y-1 text-center bg-white/[0.02] p-1.5 rounded-lg border border-white/5">
                             <span className="text-white/30">{icon}</span>
                             <span className="text-[8px] font-mono text-white/40 uppercase tracking-wider">{label}</span>
                             <span className="text-[11px] font-mono font-semibold text-[var(--foam)]">{value}</span>
@@ -133,8 +123,8 @@ const SARClassificationCard: React.FC<{ incident: Incident }> = ({ incident }) =
 
                 {/* Bonn Agreement Classification */}
                 {data.bonn_class && (
-                    <div className="flex items-center justify-between px-2 py-1.5 rounded-[var(--radius-chip)] bg-[#ff4d4d14] border border-[#ff4d4d33]">
-                        <span className="text-[9px] font-mono text-white/50 uppercase tracking-wider">Bonn Agreement</span>
+                    <div className="flex items-center justify-between px-2.5 py-1.5 rounded-[var(--radius-chip)] bg-[#ff4d4d14] border border-[#ff4d4d33]">
+                        <span className="text-[9px] font-mono text-white/50 uppercase tracking-wider">Bonn Agreement Code</span>
                         <span className="text-[10px] font-mono font-bold text-[#ff4d4d]">{data.bonn_class}</span>
                     </div>
                 )}
