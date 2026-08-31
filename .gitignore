@@ -7,10 +7,12 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+node_modules/
+dist/
+dist-ssr/
 *.local
+.env
+coverage/
 
 # Editor directories and files
 .vscode/*
@@ -28,6 +30,8 @@ dist-ssr
 context
 design
 data/
+.tempmediaStorage/
+scratch/
 
 # Python
 __pycache__/
@@ -42,6 +46,3 @@ venv/
 *.csv.zst
 *.zip
 *.tar*
-
-
-
