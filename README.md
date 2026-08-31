@@ -18,69 +18,38 @@ AegisOcean is an end-to-end maritime forensics and intelligence platform designe
 
 ## 📸 System Overview & Architecture
 
-```mermaid
-graph TD
-    classDef datasource fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#fff;
-    classDef engine fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#fff;
-    classDef ledger fill:#1e1b4b,stroke:#8b5cf6,stroke-width:2px,color:#fff;
-    classDef ui fill:#312e81,stroke:#6366f1,stroke-width:2px,color:#fff;
+```text
+┌───────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                  AEGISOCEAN SYSTEM ARCHITECTURE                               │
+└───────────────────────────────────────────────────────────────────────────────────────────────┘
 
-    SAR["📡 Sentinel-1 SAR GRD Radar"]
-    MetOcean["🌊 Copernicus & ERA5 Ocean Currents & Wind"]
-    AIS["🛳️ MarineCadastre Real-Time AIS Stream"]
-
-    subgraph MLEngine["🧠 Remote Sensing & Segmentation Core"]
-        Seg["SegFormer-B3 / ResNet34-UNet"]
-        GLCM["Calm Sea Look-alike Filter (GLCM & Wind)"]
-    end
-
-    subgraph HydroEngine["🌀 Hydrodynamic Drift Engine"]
-        Lagrangian["Backward Lagrangian Drift Hindcasting"]
-        Forecast["Forward Trajectory Forecasting (48h)"]
-    end
-
-    subgraph AISEngine["🕵️ AIS Attribution & Anomaly Core"]
-        RTree["Spatio-Temporal R-Tree Indexing"]
-        DeadReckon["Bi-LSTM AIS Dead-Reckoning"]
-        Attribution["Polluter Attribution Score (PAS) Engine"]
-    end
-
-    subgraph Web3["🔒 Immutable Legal & Compliance Layer"]
-        IPFS["📦 IPFS Evidence Dossier Storage (Pinata)"]
-        SmartContract["📜 MaritimeFineLedger.sol (Polygon Amoy)"]
-    end
-
-    subgraph Client["🖥️ Unified GIS Command Dashboard"]
-        MapLibre["🗺️ MapLibre GL UI + deck.gl Overlay"]
-        TimeSlider["⏱️ Forensic Playback & Track Matcher"]
-        Dossier["📄 Cryptographic Dossier & PDF Export"]
-    end
-
-    SAR --> Seg
-    Seg --> GLCM
-    GLCM -->|"Slick Geometry"| Lagrangian
-
-    MetOcean --> Lagrangian
-    MetOcean --> Forecast
-
-    Lagrangian -->|"Spill Origin (T₀, X₀, Y₀)"| Attribution
-    Forecast -->|"Response Fleet Vectors"| Client
-
-    AIS --> RTree
-    RTree --> DeadReckon
-    DeadReckon --> Attribution
-
-    Attribution -->|"Attributed Polluter Dossier"| IPFS
-    IPFS -->|"IPFS CID"| SmartContract
-    SmartContract -->|"On-Chain Audit Trail"| Client
-    MapLibre --> Client
-    TimeSlider --> Client
-    Dossier --> Client
-
-    class SAR,MetOcean,AIS datasource;
-    class Seg,GLCM,Lagrangian,Forecast,RTree,DeadReckon,Attribution engine;
-    class IPFS,SmartContract ledger;
-    class MapLibre,TimeSlider,Dossier ui;
+  [ 📡 Sentinel-1 SAR Radar ]       [ 🌊 Copernicus / ERA5 Winds ]    [ 🛳️ MarineCadastre AIS Stream ]
+               │                                  │                                  │
+               ▼                                  ▼                                  ▼
+ ┌───────────────────────────┐      ┌───────────────────────────┐      ┌───────────────────────────┐
+ │ 🧠 Remote Sensing & ML    │      │ 🌀 Hydrodynamic Drift     │      │ 🕵️ AIS Attribution Core   │
+ │ ------------------------- │      │ ------------------------- │      │ ------------------------- │
+ │ • SegFormer-B3 / UNet     │      │ • Backward Lagrangian     │      │ • Spatio-Temporal R-Tree  │
+ │ • GLCM Texture Filter     │───►  │   Hindcasting [T₀,X₀,Y₀]  │───►  │ • Bi-LSTM Dead-Reckoning  │
+ │ • Bonn Classification     │      │ • 48h Forecast Drift      │      │ • Polluter Score (PAS)    │
+ └───────────────────────────┘      └───────────────────────────┘      └─────────────┬─────────────┘
+                                                                                     │
+                                                                                     ▼
+ ┌─────────────────────────────────────────────────────────────────────────────────────────┐
+ │ 🔒 Immutable Legal & Compliance Layer (Web3)                                            │
+ │ --------------------------------------------------------------------------------------- │
+ │ • IPFS Evidence Dossier Storage (Pinata CID Anchoring)                                  │
+ │ • MaritimeFineLedger.sol Smart Contract (Polygon Amoy Testnet Fine Ledger)             │
+ └────────────────────────────────────────────┬────────────────────────────────────────────┘
+                                              │
+                                              ▼
+ ┌─────────────────────────────────────────────────────────────────────────────────────────┐
+ │ 🖥️ Unified GIS Command Dashboard (React 19 + TypeScript + Vite)                        │
+ │ --------------------------------------------------------------------------------------- │
+ │ • MapLibre GL UI + deck.gl High-Performance Heatmap & Vessel Track Layers               │
+ │ • Interactive Forensic Time-Slider for Spill-Vessel Correlation                         │
+ │ • SHA-256 Cryptographic Evidence Dossier & On-Chain Audit Trail Exporter                │
+ └─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
