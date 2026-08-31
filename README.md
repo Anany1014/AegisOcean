@@ -1,4 +1,4 @@
-# 🌊 AegisOcean
+# 🌊 AegisOcean — AI-Powered Maritime Forensics & Smart Contract Fine Ledger
 
 [![SIH-2026](https://img.shields.io/badge/SIH--2026-Demo--Ready-brightgreen?style=for-the-badge)](https://github.com/Anany1014/AegisOcean)
 [![License-MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
@@ -10,30 +10,13 @@
 [![ML Engine-PyTorch](https://img.shields.io/badge/ML%20Engine-PyTorch-EE4C2C?logo=pytorch&logoColor=white&style=flat-square)](https://pytorch.org/)
 [![Server-FastAPI](https://img.shields.io/badge/Server-FastAPI%20%7C%20Express-009688?logo=fastapi&logoColor=white&style=flat-square)](https://fastapi.tiangolo.com/)
 
-> **Autonomous Satellite-SAR Oil Spill Detection, Hydrodynamic Hindcasting, AIS Culprit Attribution, and Smart-Contract Fine Enforcement System**
+> **Autonomous Satellite SAR Oil Spill Detection, Hydrodynamic Backward Hindcasting, AIS Culprit Attribution, and Smart-Contract Legal Enforcement System.**
 
 AegisOcean is an end-to-end maritime forensics and intelligence platform designed to automate the detection, tracking, culprit attribution, and legal enforcement of offshore oil discharges (deliberate maritime bilge washing and tanker spills).
 
 ---
 
-## 1. Executive Summary & Problem-Solution Fit
-
-### 📌 The Problem
-Over **70% of marine oil discharges** go unpenalized globally due to three primary challenges:
-1. **Shifting Baselines:** Oil slick origin points shift rapidly over time from wind, waves, and ocean currents.
-2. **"Dark" Cooperating Vessels:** Polluting ship operators turn off their Automatic Identification System (AIS) transponders during illicit washings.
-3. **Weak Chain of Custody:** Evidence package logs are frequently contested in international courts because there is no immutable, tamper-proof audit trail of telemetry data.
-
-### 💡 The Solution: The Four-Phase Maritime Forensics Lifecycle
-AegisOcean solves these vulnerabilities by integrating four continuous operations:
-1. **📡 Detect & Segment:** Isolates oil slicks from Sentinel-1 Synthetic Aperture Radar (SAR) imagery while rejecting look-alike natural calm zones.
-2. **🌀 Reverse Hindcast:** Executes backward Lagrangian hydrodynamic particle advection to pinpoint the exact time ($T_0$) and location ($X_0, Y_0$) coordinate of the spill.
-3. **🕵️ AIS Correlation:** Matches ship tracks and dead-reckons AIS dropout gaps near the origin coordinate, scoring candidates with a multi-factor **Polluter Attribution Score (PAS)**.
-4. **🔒 On-Chain Enforcement:** Pins evidence packages directly to IPFS/Filecoin and locks them under a statutory fine and port-clearance hold using smart contracts on Polygon.
-
----
-
-## 2. End-to-End System Architecture
+## 📸 System Overview & Architecture
 
 ```mermaid
 graph TD
@@ -42,13 +25,13 @@ graph TD
     classDef ledger fill:#1e1b4b,stroke:#8b5cf6,stroke-width:2px,color:#fff;
     classDef ui fill:#312e81,stroke:#6366f1,stroke-width:2px,color:#fff;
 
-    SAR["📡 Sentinel-1 SAR GRD Imagery"]
-    MetOcean["🌊 Copernicus & ERA5 MetOcean Data"]
-    AIS["🛳️ MarineCadastre AIS Stream"]
+    SAR["📡 Sentinel-1 SAR GRD Radar"]
+    MetOcean["🌊 Copernicus & ERA5 Ocean Currents & Wind"]
+    AIS["🛳️ MarineCadastre Real-Time AIS Stream"]
 
-    subgraph MLEngine["🧠 AI & Remote Sensing Segment"]
-        Seg["efficientnet-b2 UNet / SegFormer"]
-        GLCM["Calm Sea Look-alike Filter (GLCM)"]
+    subgraph MLEngine["🧠 Remote Sensing & Segmentation Core"]
+        Seg["SegFormer-B3 / ResNet34-UNet"]
+        GLCM["Calm Sea Look-alike Filter (GLCM & Wind)"]
     end
 
     subgraph HydroEngine["🌀 Hydrodynamic Drift Engine"]
@@ -56,21 +39,21 @@ graph TD
         Forecast["Forward Trajectory Forecasting (48h)"]
     end
 
-    subgraph AISEngine["🕵️ AIS Attribution Engine"]
+    subgraph AISEngine["🕵️ AIS Attribution & Anomaly Core"]
         RTree["Spatio-Temporal R-Tree Indexing"]
         DeadReckon["Bi-LSTM AIS Dead-Reckoning"]
-        Attribution["Polluter Attribution Score (PAS)"]
+        Attribution["Polluter Attribution Score (PAS) Engine"]
     end
 
-    subgraph Web3["🔒 Decentralized Compliance & Legal Layer"]
-        IPFS["📦 IPFS Evidence Dossier Storage"]
-        SmartContract["📜 Solidity Fine Ledger (Polygon)"]
+    subgraph Web3["🔒 Immutable Legal & Compliance Layer"]
+        IPFS["📦 IPFS Evidence Dossier Storage (Pinata)"]
+        SmartContract["📜 MaritimeFineLedger.sol (Polygon Amoy)"]
     end
 
     subgraph Client["🖥️ Unified GIS Command Dashboard"]
-        MapLibre["🗺️ MapLibre GL UI"]
-        deck["📊 deck.gl Heatmap & Tracks"]
-        Dossier["📄 Evidence Dossier PDF export"]
+        MapLibre["🗺️ MapLibre GL UI + deck.gl Overlay"]
+        TimeSlider["⏱️ Forensic Playback & Track Matcher"]
+        Dossier["📄 Cryptographic Dossier & PDF Export"]
     end
 
     SAR --> Seg
@@ -80,7 +63,7 @@ graph TD
     MetOcean --> Lagrangian
     MetOcean --> Forecast
 
-    Lagrangian -->|Origin Coordinate and Time T₀| Attribution
+    Lagrangian -->|Spill Origin (T₀, X₀, Y₀)| Attribution
     Forecast -->|Response Fleet Vectors| Client
 
     AIS --> RTree
@@ -89,152 +72,188 @@ graph TD
 
     Attribution -->|Attributed Polluter Dossier| IPFS
     IPFS -->|IPFS CID| SmartContract
-    SmartContract -->|Tamper-Proof Audit Trail| Client
+    SmartContract -->|On-Chain Audit Trail| Client
     MapLibre --> Client
-    deck --> Client
+    TimeSlider --> Client
     Dossier --> Client
 
     class SAR,MetOcean,AIS datasource;
     class Seg,GLCM,Lagrangian,Forecast,RTree,DeadReckon,Attribution engine;
     class IPFS,SmartContract ledger;
-    class MapLibre,deck,Dossier ui;
+    class MapLibre,TimeSlider,Dossier ui;
 ```
 
 ---
 
-## 3. Project Directory Structure
+## 📌 Executive Summary & Key Innovations
+
+Over **70% of marine oil discharges** go unpenalized globally due to three critical gaps:
+1. **Shifting Baselines:** Ocean currents and wind drift slicks away from their origin point before coast guards arrive.
+2. **"Dark" Vessels:** Polluting ship operators disable transponders during illegal bilge washings.
+3. **Vulnerable Chain of Custody:** Evidence logs are easily contested in international maritime courts without immutable audit trails.
+
+### The AegisOcean 4-Phase Lifecycle Solution
+
+1. **📡 Phase 1 — Detect & Segment:** Ingests Sentinel-1 C-band Synthetic Aperture Radar (SAR) imagery, applies Refined-Lee speckle filtering, and segments slick boundaries using a SegFormer-B3 neural network while filtering false positives via Gray-Level Co-occurrence Matrix (GLCM) texture metrics.
+2. **🌀 Phase 2 — Reverse Hindcasting:** Runs reverse Lagrangian particle transport with ERA5 winds and Copernicus current vectors to calculate the exact spill origin time ($T_0$) and coordinates ($X_0, Y_0$).
+3. **🕵️ Phase 3 — AIS Culprit Attribution:** Performs spatio-temporal queries around $[T_0, (X_0, Y_0)]$, applies Bi-LSTM dead-reckoning for vessels with dark transponder gaps, and ranks candidates using a **Polluter Attribution Score (PAS)**.
+4. **🔒 Phase 4 — On-Chain Fine Enforcement:** Packages evidence (GeoJSON outlines, AIS tracks, SAR imagery, PAS breakdown), computes SHA-256 hashes, pins to IPFS, and anchors fine assessments on the **Polygon Amoy Testnet** (`MaritimeFineLedger.sol`).
+
+---
+
+## 🗂️ Project Directory Structure
 
 ```
 SIH/
-├── Frontend/                 # React 18 + Vite dashboard frontend application
-│   ├── src/                  # Application source files
-│   │   ├── app/              # Router shell and global providers
-│   │   ├── features/         # Features (Map, Triage, Suspect, Dossier export)
-│   │   ├── stores/           # Zustand client UI states (drift playback, theme)
-│   │   └── ui/               # Shard token-driven design primitives
-│   └── package.json          # Frontend packages & scripts
-├── AegisOcean-repo/          # Sub-repository for blockchain components
-│   └── blockchain/           # Hardhat development setup & API verification gateway
-│       ├── contracts/        # MaritimeFineLedger.sol Solidarity contract
-│       ├── services/         # IPFS (Pinata) and Contract integrations
-│       ├── server.js         # Integration Express API controller
-│       └── package.json      # Hardhat node dependencies & scripts
-├── ml/                       # Python machine learning & remote sensing pipeline
-│   ├── config.yaml           # Hyperparameters for neural classifiers
-│   ├── run_pipeline.py       # Main ML execution pipeline (classify, evaluate)
-│   ├── characterise.py       # Geometric properties & age estimator script
-│   ├── ais_suspect.py        # Suspect vessel attribution matching
-│   └── requirements_ml.txt   # Python ML modules
-├── context/                  # Project specifications, designs, & rules
-└── README.md                 # Project root documentation (this file)
+├── Frontend/                 # React 19 + TypeScript + Vite + MapLibre GIS Dashboard
+│   ├── src/
+│   │   ├── app/              # Router shell & providers
+│   │   ├── features/         # GIS Map, Triage, Suspect Analysis, Dossier Export
+│   │   ├── stores/           # Zustand client UI state (theme, drift playback)
+│   │   └── lib/              # API clients (ML, Backend, IPFS)
+│   └── package.json
+├── backend/                  # Node.js + Express + TypeScript Gateway Service
+│   ├── src/
+│   │   ├── config/           # Environment, Zod schema validation, Polygon RPC
+│   │   ├── routes/           # REST endpoints (Incidents, ML Proxy, Verification)
+│   │   ├── services/         # Incident management, IPFS Pinata, Blockchain sync
+│   │   └── index.ts          # Express entrypoint (Port 4000)
+│   └── package.json
+├── ml/                       # Python Machine Learning & Remote Sensing Engine
+│   ├── serve.py              # FastAPI inference server & physics fallback (Port 8001)
+│   ├── config.yaml           # Neural classifier & LSTM hyperparameters
+│   ├── notebooks/            # Jupyter training & evaluation notebooks
+│   └── requirements_ml.txt   # Python ML dependencies
+├── AegisOcean-repo/          # Sub-repository for Web3 smart contracts
+│   └── blockchain/           # Hardhat node, Solidity contracts, and deployment scripts
+│       ├── contracts/        # MaritimeFineLedger.sol smart contract
+│       └── server.js         # Blockchain Express gateway
+├── start.sh                  # One-touch launch bash script
+├── package.json              # Root workspace launcher (Concurrently runner)
+└── README.md                 # System documentation
 ```
 
 ---
 
-## 4. Component Deep Dive
-
-### 🧠 A. Machine Learning / Remote Sensing Image Segmentation (ML Track)
-- **Data Ingestion:** Automatically consumes Ground Range Detected (GRD) Sentinel-1 C-band SAR radar imagery, calibrated to backscatter intensity ($\sigma^0$).
-- **Filtering Noise:** Employs a **Refined-Lee speckle filter** ($7\times7$ window) to suppress speckles without losing slick boundary edges. Masking is applied to land regions using the GSHHG shoreline database.
-- **Slick Segmentation:** Processes backscatter grids through a **SegFormer-B3** (or ResNet34-UNet) model to perform pixel-level segmentation on active discharges.
-- **Look-alike Discrimination:** Overcomes biological films and calm ocean false alarms by combining Gray-Level Co-occurrence Matrix (**GLCM**) texture features (homogeneity and contrast metrics) with ERA5 weather wind data. Detections are rejected if local historical wind speeds fall below $2\text{ m/s}$ (calm look-alikes) or exceed $12\text{ m/s}$ (slick dispersion).
-
-### 🌀 B. Hydrodynamic Drift & Hindcasting Engine
-- **Physical Dynamics:** Follows Lagrangian advection kinetics:
-  $$\vec{U}_{\text{drift}} = \vec{U}_{\text{ocean\_current}} + 0.03 \cdot \vec{U}_{\text{wind}} + \vec{U}_{\text{Stokes}}$$
-- **Hindcasting (Reverse Simulation):** Spawns 5,000 inert virtual tracer particles inside the segmented oil slick boundary and simulates negative-time transport utilizing Copernicus current fields and ERA5 wind vectors up to $T_{-72\text{ hours}}$. The geographical point where the particle density is highest identifies the exact spill envelope coordinates $[T_0, (X_0, Y_0)]$.
-- **Forecasting (Early Warning):** Projects forward ocean particle flow vector paths for $24\mbox{--}48\text{ h}$ to guide coast guard response fleets.
-
-### 🕵️ C. AIS Vessel Anomaly & Attribution Core
-- **R-Tree Indexing:** Queries marine tracking records (AIS) locally in real time across the spatial-temporal envelope window $[T_0 \pm \delta t]$ using R-Trees.
-- **Dark Vessel Dead-Reckoning:** Interpolates probable location vectors for vessels whose transponders went dark (blackout anomaly) within range of the spill envelope.
-- **Polluter Attribution Score (PAS) Equation:**
-  $$\text{PAS}(v) = 0.40 \cdot S_{\text{dist}}(v) + 0.25 \cdot S_{\text{time}}(v) + 0.20 \cdot S_{\text{anomaly}}(v) + 0.15 \cdot S_{\text{type}}(v)$$
-  *Where:*
-  - $S_{\text{anomaly}}$ computes tracking anomalies (e.g. sharp speed reduction below 3 knots, zig-zag maneuvers, or AIS transmission blackout duration).
-  - $S_{\text{type}}$ factors the vessel's registration class risk factor (e.g., crude tankers/chemical carriers receive top risk weight).
-
-### 📜 D. Blockchain Compliance & Proof of Custody (Web3 Track)
-- **Decentralized Storage:** Pins the generated incident dossier container (uncompressed geotiff imagery, segmented outlines in GeoJSON, trajectory vector logs, and PAS audit summaries) to **IPFS** (via Pinata) to establish a permanent Content Identifier (CID).
-- **Legislation Ledger Smart Contract:**
-  - Deployed on **Polygon Amoy Testnet** (`MaritimeFineLedger.sol` via Hardhat).
-  - Stores incident metadata (`incidentId`, `suspectMMSI`, `ipfsCID`, `spillAreaSqKm`, `attributionScore`).
-  - Computes statutory fines directly using MARPOL Annex I scales: $\text{Fine} = \text{Base Fine} + (\text{Slick Area} \times \text{Multiplier})$.
-  - Triggers a `PortClearanceRevoked` event, communicating dynamic clearance holds to port authority registries.
-
-### 🗺️ E. Unified GIS Control Command Center
-- **GIS Layout Engine:** Combines React with MapLibre GL and deck.gl, configured with a comprehensive, thumbnail-driven Esri basemap gallery (World Ocean, Topographic, and Dark Canvas).
-- **Forensic Time-Slider:** Interactive path matching allowing operators to scroll backward in time to align drifting particle clouds with candidate AIS tracks.
-- **Cryptographic Evidence Verification:** Incorporates a one-click validation button calling the server API to compute and match the SHA-256 hash of the IPFS dataset against the on-chain Polygon anchor byte-for-byte.
-
----
-
-## 🛠️ Installation & Setup
+## ⚡ Quick Start & One-Command Launch
 
 ### Prerequisites
-- Node.js (v18.x or later) & npm
-- Python (3.10.x or later) & pip
-- Hardhat toolchain (contained in `blockchain/` folder)
+- **Node.js**: `v18.x` or later
+- **npm**: `v9.x` or later
+- **Python**: `3.10.x` or later
 
 ---
 
-### Step 1: Initialize the Machine Learning Environment
-Open a terminal shell and install Python requirements.
+### Option A: One-Command Workspace Launch (Recommended)
+
+1. **Install Root & Subproject Dependencies:**
+   ```bash
+   npm run install:all
+   ```
+
+2. **Launch Standard Stack (ML + Backend + Frontend):**
+   ```bash
+   npm run dev
+   ```
+   *This starts the ML inference server on port **8001**, the Express backend on port **4000**, and the React Vite dashboard on port **5173** concurrently.*
+
+3. **Access the Dashboard:**
+   Open **[http://localhost:5173/](http://localhost:5173/)** in your web browser.
+
+---
+
+### Option B: Full Stack with Local Hardhat Blockchain
 
 ```bash
-# Install dependencies
+# Starts Hardhat Node (8545) + ML (8001) + Backend (4000) + Frontend (5173)
+npm run dev:all
+```
+
+---
+
+### Option C: Manual Service-by-Service Launch
+
+#### 1. Machine Learning Inference Server (Port 8001)
+```bash
+# Install Python dependencies (optional for deep learning GPU mode)
 pip install -r ml/requirements_ml.txt
 
-# Download the SOS dataset from Kaggle (Optional for pretraining)
-kaggle datasets download bitsandlayers/sar-oil-spill-segmentation-dataset-sos
-unzip sar-oil-spill-segmentation-dataset-sos.zip -d data/SOS
+# Start FastAPI server
+python ml/serve.py
 ```
 
-> [!NOTE]
-> Training automatically selects the best available device: Apple Silicon (`mps`), CUDA GPUs, or falls back to CPU. You can adjust this configuration inside `ml/config.yaml`.
-
----
-
-### Step 2: Initialize & Run the Hardhat Blockchain Backend
-Navigate to the blockchain workspace, compile contracts, and start the signature gateway server.
-
+#### 2. Express Backend API Gateway (Port 4000)
 ```bash
-# Navigate to blockchain directory
-cd AegisOcean-repo/blockchain
-
-# Install dependencies
+cd backend
 npm install
-
-# Compile the contract artifacts
-npm run compile
-
-# Launch the local Express signing/verification API server
-npm start
-```
-*The API gateway and mock blockchain server will boot on port **`4000`** (`http://localhost:4000`).*
-
-> [!TIP]
-> If you have a live deployment target on the Polygon Amoy testnet, adjust the environment variables in a local `.env` file (`RPC_URL`, `PRIVATE_KEY`, `CONTRACT_ADDRESS`). Otherwise, the server automatically defaults to full functional **mock mode** for zero-setup demo scenarios.
-
----
-
-### Step 3: Launch the React GIS Dashboard
-Open a separate terminal window, set up frontend dependencies, and fire up Vite.
-
-```bash
-# Navigate to Frontend directory
-cd Frontend
-
-# Install package dependencies
-npm install
-
-# Start Vite Developer Hot Module Reloading server
 npm run dev
 ```
-*Open **`http://localhost:5173/`** in your browser to view the interactive AegisOcean Command Center.*
+
+#### 3. React GIS Dashboard Frontend (Port 5173)
+```bash
+cd Frontend
+npm install
+npm run dev
+```
+
+---
+
+## 📡 Service API Reference
+
+### 🧠 ML Inference Server (`http://localhost:8001`)
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/ml/health` | Returns server health and loaded PyTorch checkpoint status |
+| `POST` | `/ml/sar-classify` | Classifies SAR chip image or physical metadata into Bonn Agreement slick classes |
+| `POST` | `/ml/ais-predict` | Predicts future vessel positions using Bi-LSTM / Dead-Reckoning |
+| `POST` | `/ml/ais-suspects` | Scores candidate vessels with multi-factor Polluter Attribution Score (PAS) |
+
+---
+
+### 🌐 Express Backend API (`http://localhost:4000/api`)
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/incidents` | Retrieves all recorded oil spill forensic incidents |
+| `POST` | `/api/incidents` | Creates a new oil spill incident record |
+| `GET` | `/api/ml/health` | Backend proxy health status check for ML server |
+| `POST` | `/api/ml/analyze-and-anchor` | Orchestrates full pipeline: ML classify → AIS suspects → IPFS anchor → Polygon smart contract |
+
+---
+
+## 🔒 Smart Contract & Verification (`MaritimeFineLedger.sol`)
+
+The smart contract deployed on Polygon Amoy calculates statutory fines automatically using MARPOL Annex I scales:
+
+$$\text{Fine (USD)} = \text{Base Fine} + (\text{Spill Area in km}^2 \times \text{Multiplier})$$
+
+- Stores IPFS CIDs containing immutable evidence packages.
+- Emits `PortClearanceRevoked` events to flag non-compliant polluters across port registries.
+- Supports cryptographic SHA-256 validation directly inside the web UI.
+
+---
+
+## ⚙️ Environment Variables Configuration
+
+Create a `.env` file in `backend/` or set environment variables in your environment:
+
+```env
+PORT=4000
+NODE_ENV=development
+CORS_ORIGIN=http://localhost:5173
+RPC_URL=https://rpc-amoy.polygon.technology
+CHAIN_ID=80002
+CONTRACT_ADDRESS=0x0000000000000000000000000000000000000000
+ML_SERVER_URL=http://localhost:8001
+PINATA_API_KEY=your_pinata_api_key
+PINATA_SECRET_KEY=your_pinata_secret_key
+```
 
 ---
 
 ## 🛡️ License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
+This project is open-source software licensed under the **[MIT License](LICENSE)**.
+
+Developed for **Smart India Hackathon (SIH) 2026** by team AegisOcean.
